@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Self Haven | Calming Body-Image Support</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;600&family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">Self Haven</div>
+      <nav class="nav">
+        <button class="nav__link" data-route="/">Home</button>
+        <button class="nav__link" data-route="/activities">Activities</button>
+        <button class="nav__link" data-route="/favorites">Favorites</button>
+        <button class="nav__link" data-route="/settings">Settings</button>
+      </nav>
+      <button class="menu-toggle" aria-label="Toggle navigation">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </header>
+
+    <main id="app" class="app" tabindex="-1"></main>
+
+    <footer class="site-footer">
+      <p>
+        Self Haven is a free, privacy-first resource for teens and the trusted
+        adults who support them. All activities run locally on your device.
+      </p>
+      <button id="sign-in-btn" class="link-button">Optional sign in</button>
+    </footer>
+
+    <dialog id="sign-in-modal" aria-labelledby="sign-in-title">
+      <form method="dialog" class="modal">
+        <h2 id="sign-in-title">Optional sign in</h2>
+        <p>
+          Sign in with an email to save your preferences across browsers. This
+          demo keeps your information on this device only.
+        </p>
+        <label class="input-group">
+          <span>Email</span>
+          <input type="email" id="sign-in-email" placeholder="you@example.com" />
+        </label>
+        <menu class="modal__actions">
+          <button value="cancel" class="secondary">Cancel</button>
+          <button value="confirm" class="primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <div id="notification-toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>

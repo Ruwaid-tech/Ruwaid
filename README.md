@@ -1,84 +1,47 @@
-# Kitchen Manager Application
+# Self Haven
 
-This repository contains a **Python + SQLite** desktop application designed to
-support the workflow of a medium-sized restaurant kitchen.  The solution is
-implemented entirely with Tkinter and follows the success criteria agreed with
-the client: secure user access, inventory monitoring with low-stock alerts,
-recipe management tied to inventory usage, a real-time cooking checklist and
-report generation.
+Self Haven is a lightweight, privacy-first web experience that helps teens
+(13–18) soften body-image stress linked to social media. The interface offers
+rotating daily inspiration, guided soundscapes, supportive journaling prompts,
+micro mindfulness timers, sleep wind-down checklists, and a daily positivity
+challenge. Teens and trusted adults can mark favorites, toggle dark mode, opt in
+to gentle browser reminders, and clear all data at any time—no account required.
 
-## Features
+## Tech stack
 
-* **Authentication** – Users can register and log in securely from the desktop client.
-* **Dashboard** – Presents shortcuts to every workflow (inventory, rapid stock
-  edits, suppliers, vendor orders, recipes, customer orders, reports and
-  settings) while surfacing pending orders and low stock counts.
-* **Inventory Management** – Add, update or delete items with automatic unit
-  conversions (g/kg, ml/l, unit/dozen).  Low stock levels trigger in-app alerts.
-* **Edit Inventory workspace** – Quickly adjust quantities or thresholds for
-  existing stock items without re-entering their metadata.
-* **Supplier directory** – Maintain vendor contact information and notes so
-  purchase orders can be raised against the correct partner.
-* **Vendor Orders** – Log purchase orders, track their status and automatically
-  restock inventory when deliveries are marked as received.
-* **Recipe Management** – Store multi-step recipes, assign ingredients sourced
-  from the inventory and initiate the cooking workflow.
-* **Cooking Checklist** – A step-by-step checklist opens when cooking starts.
-  Ingredients are deducted from the inventory immediately and a completion
-  confirmation is displayed after all steps are ticked.
-* **Customer Orders** – Capture dine-in demand, progress orders through their
-  lifecycle and deduct inventory when meals are marked as completed.
-* **Reports** – View recipe popularity, ingredient consumption totals and a
-  consolidated low-stock list to inform restocking decisions.  Embedded bar
-  charts highlight the top-performing dishes and most-used ingredients.
-* **Theme toggle** – Switch between coordinated light and dark palettes without
-  restarting the program; the preference is saved per user profile.
-* **Settings** – Store branded preferences such as restaurant name, default
-  vendor lead times and notification contact details.
+- Static HTML + CSS + vanilla JavaScript (no frameworks)
+- Client-side routing powered by a minimal hash router
+- All preferences are saved to `localStorage`; no network calls are required
 
-## Project structure
+## Running locally
 
-```
-.
-├── app.py            # Tkinter user interface
-├── database.py       # SQLite schema + data access helpers
-└── kitchen_manager.db (created on first run)
+Open `index.html` in any modern browser. For local notifications to work, serve
+the folder over `http://localhost` using your preferred static server:
+
+```bash
+python -m http.server 8000
 ```
 
-## Getting started
+Then visit `http://localhost:8000`.
 
-1. Ensure Python 3.10+ is installed.
-2. Install optional dependencies (Tkinter ships with the standard library on
-   most platforms; on Linux you may need the `python3-tk` package).
-3. Run the application:
+## Key features
 
-   ```bash
-   python app.py
-   ```
+- **Daily rotation:** Quotes, affirmations, and a featured soundscape shift each
+day so the home page always feels fresh.
+- **Activities hub:** Tabs for soundscapes, journaling, mindfulness, sleep
+support, and positivity challenges. All tools work offline and store state
+locally.
+- **Favorites:** Heart any activity to keep it in a dedicated favorites list.
+- **Safety guardrails:** A gentle content filter surfaces encouraging messaging
+when harsh language appears in journal entries.
+- **Comfort controls:** Dark mode toggle, optional browser notifications, and a
+single-click “clear saved data” button.
+- **Optional sign-in stub:** Teens can store a pseudonymous email locally to
+indicate an optional sign-in without sending data anywhere.
 
-The first launch creates `kitchen_manager.db` in the repository root.  A sample
-`manager` account with password `kitchen123` is preloaded, along with inventory,
-suppliers, vendor orders, recipes, cooking history and customer orders so you
-can demo the workflows immediately.  You can also use the “Register” button to
-add additional accounts.
+## Accessibility and performance
 
-## Usage tips
-
-* Quantities can be entered in grams/millilitres or kilograms/litres.  The
-  system automatically normalises values and displays them in the most
-  appropriate unit.
-* Recipes cannot be cooked until all required ingredients exist in the
-  inventory with sufficient stock.  The application will list shortages.
-* Supplier and vendor order directories power the automatic restocking flow –
-  once a delivery is marked **Received**, the inventory updates instantly.
-* Customer orders can be marked **In Progress** or **Completed** to mirror the
-  kitchen workflow and keep ingredient usage analytics accurate.
-* Reports are recalculated every time the **Reports** page is opened, so
-  cooking new dishes immediately updates the analytics.
-
-## Screenshots
-
-The GUI is responsive to window resizing.  For assessment submissions, capture
-screenshots directly from the running Tkinter window that demonstrate the main
-workflows (login, inventory, recipes, checklist and reports).
-
+The interface uses semantic HTML, high-contrast typography, large touch targets,
+and avoids flashing elements. CSS custom properties provide instant theme
+switching, and JavaScript remains under 100 KB to keep the experience fast on
+mobile devices.
