@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Self Haven | Calming Body-Image Support</title>
+    <title>Self Haven | A Calming Corner for Teens</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;600&family=Nunito:wght@400;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles/main.css" />
@@ -15,49 +15,138 @@
   <body>
     <header class="site-header">
       <div class="logo">Self Haven</div>
-      <nav class="nav">
-        <button class="nav__link" data-route="/">Home</button>
-        <button class="nav__link" data-route="/activities">Activities</button>
-        <button class="nav__link" data-route="/favorites">Favorites</button>
-        <button class="nav__link" data-route="/settings">Settings</button>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="nav__link" href="index.html">Home</a>
+        <a class="nav__link" href="activities.html">Activities</a>
+        <a class="nav__link" href="affirmations.html">Affirmations</a>
+        <a class="nav__link" href="about.html">About</a>
       </nav>
-      <button class="menu-toggle" aria-label="Toggle navigation">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
+      <div class="header-actions">
+        <button id="theme-toggle" class="ghost" aria-label="Toggle dark mode">
+          <span class="icon-sun" aria-hidden="true"></span>
+          <span class="icon-moon" aria-hidden="true"></span>
+        </button>
+        <button id="sign-in-btn" class="ghost">Optional sign in</button>
+        <button class="menu-toggle" aria-label="Toggle navigation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
     </header>
 
-    <main id="app" class="app" tabindex="-1"></main>
+    <main class="page" id="top">
+      <section class="hero">
+        <div class="hero__content">
+          <p class="hero__eyebrow">A mindful pause from social media noise</p>
+          <h1>Reconnect with your calm.</h1>
+          <p>
+            Welcome to Self Haven — a gentle digital nook for teens ready to breathe,
+            reset, and rebuild self-confidence. Discover mindful breaks, journaling
+            prompts, and positive reminders curated to soothe comparison and spark
+            self-kindness.
+          </p>
+          <div class="hero__actions">
+            <a class="btn-primary" href="activities.html#mindfulness">Start Activity</a>
+            <a class="btn-secondary" href="affirmations.html">See today's boost</a>
+          </div>
+        </div>
+        <div class="hero__visual" role="presentation">
+          <div class="hero__wave"></div>
+          <div class="hero__image">
+            <p>"I give myself permission to grow at my own pace."</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="intro-grid">
+        <article>
+          <h2>Your daily reset</h2>
+          <p>
+            Each visit offers fresh affirmations, guided breathing, and journal prompts
+            to help you untangle stress. No accounts, no pressure — just practices to
+            ground your thoughts.
+          </p>
+        </article>
+        <article>
+          <h2>Designed for safety</h2>
+          <p>
+            Self Haven never tracks or sells your data. Everything saves privately on
+            your device so you stay in control of what you keep.
+          </p>
+        </article>
+        <article>
+          <h2>Pick your flow</h2>
+          <p>
+            Drift with calming soundscapes, jot down feelings, or gather soothing
+            reminders. Mix and match whatever restores your spark today.
+          </p>
+        </article>
+      </section>
+
+      <section class="quick-links" aria-labelledby="quick-links-title">
+        <div class="section-header">
+          <h2 id="quick-links-title">Gently explore</h2>
+          <p>Jump straight to what you need right now.</p>
+        </div>
+        <div class="link-grid">
+          <a class="link-card" href="activities.html#mindfulness">
+            <h3>Guided mindfulness</h3>
+            <p>Mini breathing rituals and body scans to settle racing thoughts.</p>
+          </a>
+          <a class="link-card" href="activities.html#journal">
+            <h3>Journaling prompts</h3>
+            <p>Warm questions with space to write and release.</p>
+          </a>
+          <a class="link-card" href="activities.html#soundscapes">
+            <h3>Calming soundscapes</h3>
+            <p>Ocean, rain, and forest ambience for mindful study or rest.</p>
+          </a>
+          <a class="link-card" href="affirmations.html">
+            <h3>Daily affirmations</h3>
+            <p>Confidence boosters to remind you that you are enough.</p>
+          </a>
+        </div>
+      </section>
+
+      <section class="callout">
+        <div>
+          <h2>Mindfulness can be playful</h2>
+          <p>
+            Set a five-minute timer, stretch your shoulders, and imagine placing heavy
+            worries on a passing cloud. Your feelings matter — and they also get to rest.
+          </p>
+        </div>
+      </section>
+    </main>
 
     <footer class="site-footer">
       <p>
-        Self Haven is a free, privacy-first resource for teens and the trusted
-        adults who support them. All activities run locally on your device.
+        You are worthy of kindness exactly as you are. Be gentle with yourself today.
       </p>
-      <button id="sign-in-btn" class="link-button">Optional sign in</button>
+      <a href="mailto:hello@selfhaven.org" class="link">Contact us</a>
     </footer>
 
     <dialog id="sign-in-modal" aria-labelledby="sign-in-title">
       <form method="dialog" class="modal">
-        <h2 id="sign-in-title">Optional sign in</h2>
+        <h2 id="sign-in-title">Optional email sign-in</h2>
         <p>
-          Sign in with an email to save your preferences across browsers. This
-          demo keeps your information on this device only.
+          Save your favorite tools and journal entries by adding an email. Everything is
+          stored locally on this device and can be cleared anytime.
         </p>
         <label class="input-group">
           <span>Email</span>
-          <input type="email" id="sign-in-email" placeholder="you@example.com" />
+          <input type="email" id="sign-in-email" name="email" placeholder="you@example.com" />
         </label>
         <menu class="modal__actions">
-          <button value="cancel" class="secondary">Cancel</button>
-          <button value="confirm" class="primary">Save</button>
+          <button value="cancel" class="ghost">Cancel</button>
+          <button value="confirm" class="btn-primary">Save</button>
         </menu>
       </form>
     </dialog>
 
-    <div id="notification-toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-    <script type="module" src="js/app.js"></script>
+    <script src="js/site.js" defer></script>
   </body>
 </html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Self Haven Affirmations</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="logo">Self Haven</div>
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="nav__link" href="index.html">Home</a>
+        <a class="nav__link" href="activities.html">Activities</a>
+        <a class="nav__link is-active" href="affirmations.html">Affirmations</a>
+        <a class="nav__link" href="about.html">About</a>
+      </nav>
+      <div class="header-actions">
+        <button id="theme-toggle" class="ghost" aria-label="Toggle dark mode">
+          <span class="icon-sun" aria-hidden="true"></span>
+          <span class="icon-moon" aria-hidden="true"></span>
+        </button>
+        <button id="sign-in-btn" class="ghost">Optional sign in</button>
+        <button class="menu-toggle" aria-label="Toggle navigation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </header>
+
+    <main class="page" id="top">
+      <header class="page-header">
+        <h1>Daily affirmations</h1>
+        <p>
+          Gentle reminders to celebrate who you are beyond likes and filters. Refresh the
+          page for a new combination whenever you need a lift.
+        </p>
+      </header>
+
+      <section class="section" aria-labelledby="today-title">
+        <div class="section-header">
+          <h2 id="today-title">Today's spotlight</h2>
+          <p>Carry these affirmations with you throughout the day.</p>
+        </div>
+        <div class="affirmation-stack" id="affirmation-stack"></div>
+      </section>
+
+      <section class="section" aria-labelledby="reminder-title">
+        <div class="section-header">
+          <h2 id="reminder-title">Bonus reminders</h2>
+          <p>Pick the message that resonates, then place it somewhere you will see it.</p>
+        </div>
+        <ul class="reminder-list" id="reminder-list"></ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>You are worthy of kindness exactly as you are. Be gentle with yourself today.</p>
+      <a href="mailto:hello@selfhaven.org" class="link">Contact us</a>
+    </footer>
+
+    <dialog id="sign-in-modal" aria-labelledby="sign-in-title">
+      <form method="dialog" class="modal">
+        <h2 id="sign-in-title">Optional email sign-in</h2>
+        <p>
+          Save your favorite tools and journal entries by adding an email. Everything is
+          stored locally on this device and can be cleared anytime.
+        </p>
+        <label class="input-group">
+          <span>Email</span>
+          <input type="email" id="sign-in-email" name="email" placeholder="you@example.com" />
+        </label>
+        <menu class="modal__actions">
+          <button value="cancel" class="ghost">Cancel</button>
+          <button value="confirm" class="btn-primary">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="js/site.js" defer></script>
+  </body>
+</html>
