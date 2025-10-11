@@ -399,30 +399,13 @@ a:focus-visible,
   border-color: color-mix(in srgb, var(--color-lavender) 55%, transparent);
 }
 
-.card--audio {
-  align-content: start;
+.card--audio audio {
+  width: 100%;
+  border-radius: var(--radius-sm);
 }
 
-.card--audio .btn-secondary {
+.card--audio button {
   justify-self: start;
-}
-
-.soundscape-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.soundscape-toggle[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--color-lavender) 65%, var(--color-white));
-  border-color: color-mix(in srgb, var(--color-lavender) 65%, transparent);
-  color: var(--color-ink);
-}
-
-.soundscape-status {
-  font-size: 0.9rem;
-  color: var(--color-muted);
 }
 
 .add-favorite.is-active {
