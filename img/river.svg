@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Placeholder illustration of the River Park route</title>
+  <desc id="desc">A winding river path bordered by trees to echo the river ride.</desc>
+  <rect width="800" height="600" fill="#dfeee3" rx="32" />
+  <path d="M120 600 C200 460 320 500 420 360 C520 220 640 280 720 140" stroke="#2b6cb0" stroke-width="40" fill="none" stroke-linecap="round" opacity="0.8" />
+  <circle cx="180" cy="200" r="36" fill="#5f8b55" opacity="0.85" />
+  <circle cx="300" cy="160" r="28" fill="#5f8b55" opacity="0.75" />
+  <circle cx="540" cy="240" r="32" fill="#5f8b55" opacity="0.7" />
+  <text x="50%" y="520" text-anchor="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="36" fill="#1f2937">
+    River Park Connector
+  </text>
+</svg>

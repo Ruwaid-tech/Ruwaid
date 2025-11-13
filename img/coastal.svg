@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Placeholder illustration of the Coastal Glide route</title>
+  <desc id="desc">Simplified lighthouse and shoreline celebrating coastal rides.</desc>
+  <rect width="800" height="600" fill="#f6f4ef" rx="32" />
+  <rect x="120" y="120" width="80" height="240" fill="#ffffff" stroke="#2b6cb0" stroke-width="8" rx="16" />
+  <polygon points="160,80 120,140 200,140" fill="#2b6cb0" />
+  <circle cx="160" cy="160" r="18" fill="#ffba49" />
+  <path d="M0 400 Q200 360 400 400 T800 400 V600 H0 Z" fill="#8ecae6" opacity="0.7" />
+  <path d="M0 430 Q200 390 400 430 T800 430 V600 H0 Z" fill="#2b6cb0" opacity="0.5" />
+  <text x="50%" y="520" text-anchor="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="36" fill="#1f2937">
+    Coastal Glide Path
+  </text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-labelledby="title desc">
+  <title id="title">Placeholder illustration of the Lake Park route</title>
+  <desc id="desc">Sage and blue tones forming a simplified lake scene for the lake ride entry.</desc>
+  <rect width="800" height="600" fill="#dfeee3" rx="32" />
+  <ellipse cx="400" cy="360" rx="320" ry="160" fill="#9fd5f5" />
+  <ellipse cx="400" cy="360" rx="260" ry="120" fill="#6fb9e5" opacity="0.7" />
+  <path d="M80 340 C160 260, 640 260, 720 340" stroke="#5f8b55" stroke-width="12" fill="none" stroke-linecap="round" />
+  <circle cx="200" cy="220" r="46" fill="#ffba49" opacity="0.75" />
+  <text x="50%" y="520" text-anchor="middle" font-family="'Inter', 'Segoe UI', sans-serif" font-size="36" fill="#1f2937">
+    Lake Park Loop
+  </text>
+</svg>
