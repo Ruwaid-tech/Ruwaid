@@ -1,152 +1,96 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Self Haven | A Calming Corner for Teens</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="styles/main.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="logo">Self Haven</div>
-      <nav class="nav" aria-label="Primary navigation">
-        <a class="nav__link" href="index.html">Home</a>
-        <a class="nav__link" href="activities.html">Activities</a>
-        <a class="nav__link" href="affirmations.html">Affirmations</a>
-        <a class="nav__link" href="about.html">About</a>
-      </nav>
-      <div class="header-actions">
-        <button id="theme-toggle" class="ghost" aria-label="Toggle dark mode">
-          <span class="icon-sun" aria-hidden="true"></span>
-          <span class="icon-moon" aria-hidden="true"></span>
-        </button>
-        <button id="sign-in-btn" class="ghost">Optional sign in</button>
-        <button class="menu-toggle" aria-label="Toggle navigation">
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Reflective cycling journal highlighting routes, ride logs, and personal insights for the MYP5 Design project.">
+  <title>Reflective Cycling Journal | Home</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/app.js"></script>
+</head>
+<body data-page="home">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header" id="top">
+    <div class="container header-container">
+      <div class="branding">
+        <span class="brand-mark" aria-hidden="true">🚲</span>
+        <p class="brand-title">Reflective Cycling Journal</p>
       </div>
-    </header>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html" aria-current="page">Home</a></li>
+          <li><a href="routes.html">Routes</a></li>
+          <li><a href="reflections.html">Reflections</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
 
-    <main class="page" id="top">
-      <section class="hero">
-        <div class="hero__content">
-          <p class="hero__eyebrow">A mindful pause from social media noise</p>
-          <h1>Reconnect with your calm.</h1>
-          <p>
-            Welcome to Self Haven — a gentle digital nook for teens ready to breathe,
-            reset, and rebuild self-confidence. Discover mindful breaks, journaling
-            prompts, and positive reminders curated to soothe comparison and spark
-            self-kindness.
-          </p>
-          <div class="hero__actions">
-            <a class="btn-primary" href="activities.html#mindfulness">Start Activity</a>
-            <a class="btn-secondary" href="affirmations.html">See today's boost</a>
-          </div>
-        </div>
-        <div class="hero__visual" role="presentation">
-          <div class="hero__wave"></div>
-          <div class="hero__image">
-            <p>"I give myself permission to grow at my own pace."</p>
-          </div>
-        </div>
-      </section>
+  <main id="main-content" tabindex="-1">
+    <section class="hero">
+      <div class="container hero-content">
+        <p class="eyebrow">Personal Project</p>
+        <h1>A Personal Exploration of Scenic Routes with Reflective Insights</h1>
+        <p class="lead">A calm space to plan, ride, and reflect on every cycling journey while practicing thoughtful, sustainable web design.</p>
+      </div>
+    </section>
 
-      <section class="intro-grid">
-        <article>
-          <h2>Your daily reset</h2>
-          <p>
-            Each visit offers fresh affirmations, guided breathing, and journal prompts
-            to help you untangle stress. No accounts, no pressure — just practices to
-            ground your thoughts.
-          </p>
+    <section class="container cards-grid" aria-labelledby="journey-actions">
+      <div class="section-heading">
+        <h2 id="journey-actions">Start your journey</h2>
+        <p>Use these quick actions to keep the cycling journal organized and purposeful.</p>
+      </div>
+      <div class="grid three">
+        <article class="card card-action">
+          <h3>Plan a Route</h3>
+          <p>Draft a new ride idea with terrain notes, safety checks, and scenic highlights.</p>
+          <a class="btn" href="routes.html">Explore routes</a>
         </article>
-        <article>
-          <h2>Designed for safety</h2>
-          <p>
-            Self Haven never tracks or sells your data. Everything saves privately on
-            your device so you stay in control of what you keep.
-          </p>
+        <article class="card card-action">
+          <h3>Log a Ride</h3>
+          <p>Capture distance, mood, and takeaways after each session to show growth over time.</p>
+          <a class="btn" href="reflections.html#log">View the journal</a>
         </article>
-        <article>
-          <h2>Pick your flow</h2>
-          <p>
-            Drift with calming soundscapes, jot down feelings, or gather soothing
-            reminders. Mix and match whatever restores your spark today.
-          </p>
+        <article class="card card-action">
+          <h3>Read Reflections</h3>
+          <p>Review key insights and highlighted lessons to prepare for the next ride.</p>
+          <a class="btn" href="reflections.html">Read reflections</a>
         </article>
-      </section>
+      </div>
+    </section>
 
-      <section class="quick-links" aria-labelledby="quick-links-title">
-        <div class="section-header">
-          <h2 id="quick-links-title">Gently explore</h2>
-          <p>Jump straight to what you need right now.</p>
-        </div>
-        <div class="link-grid">
-          <a class="link-card" href="activities.html#mindfulness">
-            <h3>Guided mindfulness</h3>
-            <p>Mini breathing rituals and body scans to settle racing thoughts.</p>
-          </a>
-          <a class="link-card" href="activities.html#journal">
-            <h3>Journaling prompts</h3>
-            <p>Warm questions with space to write and release.</p>
-          </a>
-          <a class="link-card" href="activities.html#soundscapes">
-            <h3>Calming soundscapes</h3>
-            <p>Ocean, rain, and forest ambience for mindful study or rest.</p>
-          </a>
-          <a class="link-card" href="affirmations.html">
-            <h3>Daily affirmations</h3>
-            <p>Confidence boosters to remind you that you are enough.</p>
-          </a>
-        </div>
-      </section>
-
-      <section class="callout">
-        <div>
-          <h2>Mindfulness can be playful</h2>
-          <p>
-            Set a five-minute timer, stretch your shoulders, and imagine placing heavy
-            worries on a passing cloud. Your feelings matter — and they also get to rest.
-          </p>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
+    <section class="container story" aria-labelledby="story-heading">
+      <div class="section-heading">
+        <h2 id="story-heading">My evolving cycling story</h2>
+      </div>
       <p>
-        You are worthy of kindness exactly as you are. Be gentle with yourself today.
+        <!-- Replace the text below with a personal paragraph that explains the motivation behind this cycling exploration. -->
+        This project invites space to experiment with route planning, mindful riding, and structured reflection. Replace this paragraph with a personal story describing how cycling connects to learning goals, community, and wellbeing.
       </p>
-      <a href="mailto:hello@selfhaven.org" class="link">Contact us</a>
-    </footer>
+    </section>
 
-    <dialog id="sign-in-modal" aria-labelledby="sign-in-title">
-      <form method="dialog" class="modal">
-        <h2 id="sign-in-title">Optional email sign-in</h2>
-        <p>
-          Save your favorite tools and journal entries by adding an email. Everything is
-          stored locally on this device and can be cleared anytime.
-        </p>
-        <label class="input-group">
-          <span>Email</span>
-          <input type="email" id="sign-in-email" name="email" placeholder="you@example.com" />
-        </label>
-        <menu class="modal__actions">
-          <button value="cancel" class="ghost">Cancel</button>
-          <button value="confirm" class="btn-primary">Save</button>
-        </menu>
-      </form>
-    </dialog>
+    <section class="container insights" aria-live="polite">
+      <div class="section-heading">
+        <h2>This week in focus</h2>
+        <p>Fresh entries help track consistency and celebrate progress.</p>
+      </div>
+      <div class="stats-card card">
+        <p class="stat-label">This week&rsquo;s entries</p>
+        <p class="stat-number" data-testid="entries-this-week">0</p>
+      </div>
+    </section>
+  </main>
 
-    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <p>&copy; <span id="year"></span> Reflective Cycling Journal. Crafted for the MYP5 Design personal project.</p>
+      <a class="footer-link" href="#top">Back to top</a>
+    </div>
+  </footer>
 
-    <script src="js/site.js" defer></script>
-  </body>
+  <button class="back-to-top" type="button" aria-label="Back to top">
+    <span aria-hidden="true">↑</span>
+  </button>
+</body>
 </html>

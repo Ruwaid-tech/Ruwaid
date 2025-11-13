@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Read reflective cycling journal entries with highlights, photos, and weekly insights.">
+  <title>Reflective Cycling Journal | Reflections</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer src="js/app.js"></script>
+</head>
+<body data-page="reflections">
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header" id="top">
+    <div class="container header-container">
+      <div class="branding">
+        <span class="brand-mark" aria-hidden="true">🚲</span>
+        <p class="brand-title">Reflective Cycling Journal</p>
+      </div>
+      <nav class="site-nav" aria-label="Primary">
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="routes.html">Routes</a></li>
+          <li><a href="reflections.html" aria-current="page">Reflections</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" tabindex="-1">
+    <nav class="breadcrumbs" aria-label="Breadcrumb" data-testid="breadcrumbs">
+      <ol>
+        <li><a href="index.html">Home</a></li>
+        <li aria-current="page">Reflections</li>
+      </ol>
+    </nav>
+
+    <section class="hero hero-sub">
+      <div class="container hero-content">
+        <h1>Reflective entries and highlighted insights</h1>
+        <p>Each note captures a learning moment&mdash;use the highlight toggle to focus on insights when preparing evidence.</p>
+      </div>
+    </section>
+
+    <section id="log" class="container reflection-controls" aria-labelledby="insights-controls">
+      <div class="section-heading">
+        <h2 id="insights-controls">Review entries your way</h2>
+        <p>Toggle highlights or scroll through full narratives. The journal remembers where you left off.</p>
+      </div>
+      <button type="button" class="btn" data-testid="insight-toggle" aria-pressed="false" data-action="toggle-highlights">Show highlights only</button>
+      <p class="sr-note">Use keyboard commands to navigate cards. Focus outlines remain visible.</p>
+    </section>
+
+    <section class="container reflections-list" aria-labelledby="reflections-heading">
+      <div class="section-heading">
+        <h2 id="reflections-heading">Latest reflections</h2>
+        <p class="muted">Entries load automatically from the reflections data file. Update <code>data/reflections.json</code> to customize.</p>
+      </div>
+      <div id="reflections-loader" class="loader" role="status" aria-live="polite" data-testid="loader">Loading reflections…</div>
+      <div id="reflections-container" class="reflection-grid" hidden></div>
+    </section>
+
+    <template id="reflection-card-template">
+      <article class="card reflection-card">
+        <header>
+          <p class="reflection-date"></p>
+          <h3 class="reflection-summary"></h3>
+        </header>
+        <p class="reflection-mood"></p>
+        <figure class="reflection-photo" hidden>
+          <img src="" alt="" loading="lazy">
+          <figcaption></figcaption>
+        </figure>
+        <p class="reflection-insight"></p>
+        <div class="reflection-tags"></div>
+      </article>
+    </template>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <p>&copy; <span id="year"></span> Reflective Cycling Journal. Crafted for the MYP5 Design personal project.</p>
+      <a class="footer-link" href="#top">Back to top</a>
+    </div>
+  </footer>
+
+  <button class="back-to-top" type="button" aria-label="Back to top">
+    <span aria-hidden="true">↑</span>
+  </button>
+</body>
+</html>
