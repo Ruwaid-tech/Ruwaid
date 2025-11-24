@@ -9,6 +9,7 @@ from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import (
     QApplication,
+    QAction,
     QComboBox,
     QDialog,
     QFrame,
@@ -598,6 +599,24 @@ class LoginPage(QWidget):
 
         form = QFormLayout()
         form.setLabelAlignment(Qt.AlignRight)
+        form.setContentsMargins(6, 6, 6, 6)
+        form.setSpacing(10)
+        form.setStyleSheet(
+            "QLabel {"
+            "  color: #1d1d1d;"
+            "  font-weight: 600;"
+            "}"
+            "QLineEdit {"
+            "  background: #ffffff;"
+            "  color: #111111;"
+            "  border: 1px solid #8aa6d6;"
+            "  padding: 9px;"
+            "  border-radius: 6px;"
+            "}"
+            "QLineEdit:focus {"
+            "  border: 2px solid #1e6bd6;"
+            "}"
+        )
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("you@example.com")
         self.password_input = QLineEdit()
@@ -840,6 +859,11 @@ class MainWindow(QMainWindow):
         self.cart: Dict[int, int] = {}
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
+        self.logout_action = QAction("Logout", self)
+        self.logout_action.triggered.connect(self.logout)
+        self.logout_action.setEnabled(False)
+        account_menu = self.menuBar().addMenu("Account")
+        account_menu.addAction(self.logout_action)
         self.login = LoginPage(self.db)
         self.login.authenticated.connect(self.after_login)
         self.stack.addWidget(self.login)
@@ -853,12 +877,20 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.admin_panel)
 
     def after_login(self, user: User) -> None:
+        self.logout_action.setEnabled(True)
         if user.role == "admin":
             self.admin_panel.refresh()
             self.stack.setCurrentWidget(self.admin_panel)
         else:
             self.gallery.refresh()
             self.stack.setCurrentWidget(self.gallery)
+
+    def logout(self) -> None:
+        self.cart.clear()
+        self.login.email_input.clear()
+        self.login.password_input.clear()
+        self.logout_action.setEnabled(False)
+        self.stack.setCurrentWidget(self.login)
 
     def add_artwork_to_cart(self, art_id: int) -> None:
         current_qty = self.cart.get(art_id, 0)
