@@ -10,6 +10,7 @@ from PyQt5.QtGui import QIntValidator
 from PyQt5.QtWidgets import (
     QApplication,
     QAction,
+    QCheckBox,
     QComboBox,
     QDialog,
     QFrame,
@@ -348,16 +349,94 @@ class DatabaseManager:
             conn.commit()
 
 
+class ArtworkDetailDialog(QDialog):
+    def __init__(self, art: Tuple, on_add, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.art = art
+        self.on_add = on_add
+        self.setWindowTitle(f"ART HUB — {art[1]}")
+        layout = QVBoxLayout()
+
+        header = QLabel("ART HUB — Artwork Detail")
+        header.setStyleSheet("font-family: 'Courier New'; font-weight: 700;")
+        header.setAlignment(Qt.AlignCenter)
+        layout.addWidget(header)
+
+        card = QFrame()
+        card.setStyleSheet(
+            "QFrame { border: 1px solid #aaa; border-radius: 8px; padding: 12px; background: #fdfdfd; font-family: 'Courier New'; }"
+        )
+        info = QVBoxLayout()
+        info.addWidget(QLabel(f"Title: {art[1]}"))
+        info.addWidget(QLabel(f"Category: {art[2] or 'N/A'}"))
+        info.addWidget(QLabel(f"Price: ₹{art[3]:.0f}"))
+        info.addWidget(QLabel(f"In Stock: {art[4]}"))
+        desc = QLabel(art[5] or "No description yet.")
+        desc.setWordWrap(True)
+        info.addWidget(desc)
+        btn_row = QHBoxLayout()
+        add_btn = QPushButton("Add to Cart")
+        add_btn.setEnabled(art[4] > 0)
+        add_btn.clicked.connect(self._add)
+        back_btn = QPushButton("Back to Gallery")
+        back_btn.clicked.connect(self.reject)
+        btn_row.addWidget(add_btn)
+        btn_row.addWidget(back_btn)
+        info.addLayout(btn_row)
+        card.setLayout(info)
+        layout.addWidget(card)
+        self.setLayout(layout)
+
+    def _add(self) -> None:
+        self.on_add(self.art[0])
+        self.accept()
+
+
 class ContactOwnerDialog(QDialog):
     def __init__(self, owner_name: str, owner_phone: str, parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Contact Owner")
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Order Recorded"))
-        layout.addWidget(QLabel("Please contact the owner to finalize COD."))
-        layout.addWidget(QLabel(f"Owner: {owner_name}"))
-        layout.addWidget(QLabel(f"Phone: {owner_phone}"))
+
+        header = QLabel("Order Recorded")
+        header.setAlignment(Qt.AlignCenter)
+        header.setStyleSheet("font-family: 'Courier New'; font-weight: bold; font-size: 14px;")
+        layout.addWidget(header)
+
+        card = QFrame()
+        card.setStyleSheet(
+            "QFrame { border: 1px solid #444; border-radius: 8px; padding: 14px; background: #f8fbff; font-family: 'Courier New'; }"
+        )
+        info = QVBoxLayout()
+        info.addWidget(QLabel("Please contact the owner to finalize COD."))
+        info.addWidget(QLabel(f"Owner: {owner_name}"))
+        info.addWidget(QLabel(f"Phone: {owner_phone}"))
+        card.setLayout(info)
+        layout.addWidget(card)
+
         close_btn = QPushButton("Close")
+        close_btn.clicked.connect(self.accept)
+        layout.addWidget(close_btn)
+        self.setLayout(layout)
+
+
+class OrderConfirmationDialog(QDialog):
+    def __init__(self, order_id: int, owner_phone: str, parent: QWidget | None = None):
+        super().__init__(parent)
+        self.setWindowTitle("Order Confirmation")
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Thank you!"))
+        card = QFrame()
+        card.setStyleSheet(
+            "QFrame { border: 1px dashed #666; border-radius: 8px; padding: 12px; font-family: 'Courier New'; background: #fff; }"
+        )
+        info = QVBoxLayout()
+        info.addWidget(QLabel(f"Order ID: ORD-{order_id:04d}"))
+        info.addWidget(QLabel("Status: Pending COD"))
+        info.addWidget(QLabel(f"Next: Call {owner_phone} to coordinate delivery."))
+        card.setLayout(info)
+        layout.addWidget(card)
+        close_btn = QPushButton("Back to Gallery")
         close_btn.clicked.connect(self.accept)
         layout.addWidget(close_btn)
         self.setLayout(layout)
@@ -370,23 +449,33 @@ class CheckoutDialog(QDialog):
         super().__init__(parent)
         self.db = db
         self.cart = cart
-        self.setWindowTitle("Checkout")
+        self.setWindowTitle("ART HUB — Checkout")
         layout = QVBoxLayout()
 
+        cart_box = QGroupBox("Cart Summary (COD only)")
+        cart_box.setStyleSheet("QGroupBox { font-weight: 700; font-family: 'Courier New'; }")
+        cart_layout = QVBoxLayout()
         self.cart_summary = QLabel()
-        layout.addWidget(self.cart_summary)
+        self.cart_summary.setStyleSheet("font-family: 'Courier New';")
+        cart_layout.addWidget(self.cart_summary)
+        cart_box.setLayout(cart_layout)
+        layout.addWidget(cart_box)
 
+        form_box = QGroupBox("Buyer Details")
+        form_box.setStyleSheet("QGroupBox { font-weight: 700; font-family: 'Courier New'; }")
         form = QFormLayout()
         self.name_input = QLineEdit()
         self.phone_input = QLineEdit()
         self.address_input = QTextEdit()
         self.phone_input.setPlaceholderText("e.g., +91-9000000000")
-        form.addRow("Buyer Name", self.name_input)
+        self.address_input.setPlaceholderText("Flat / Street / City")
+        form.addRow("Name", self.name_input)
         form.addRow("Phone", self.phone_input)
         form.addRow("Address", self.address_input)
-        layout.addLayout(form)
+        form_box.setLayout(form)
+        layout.addWidget(form_box)
 
-        btn = QPushButton("Confirm Order (COD)")
+        btn = QPushButton("Confirm Order — Cash on Delivery")
         btn.clicked.connect(self.handle_confirm)
         layout.addWidget(btn)
         self.setLayout(layout)
@@ -397,7 +486,7 @@ class CheckoutDialog(QDialog):
         for art_id, qty in self.cart.items():
             art = self.db.get_artwork(art_id)
             if art:
-                parts.append(f"{art[1]} x {qty} = ₹{art[3] * qty:.0f}")
+                parts.append(f"• {art[1]} x {qty} = ₹{art[3] * qty:.0f}")
         self.cart_summary.setText("\n".join(parts))
 
     def handle_confirm(self) -> None:
@@ -517,6 +606,11 @@ class GalleryPage(QWidget):
         super().__init__()
         self.db = db
         layout = QVBoxLayout()
+        header = QLabel("ART HUB — Gallery")
+        header.setAlignment(Qt.AlignCenter)
+        header.setStyleSheet("font-weight: 700; font-size: 16px; font-family: 'Courier New';")
+        layout.addWidget(header)
+
         form = QGridLayout()
         self.search_input = QLineEdit()
         self.category_box = QComboBox()
@@ -528,21 +622,27 @@ class GalleryPage(QWidget):
         form.addWidget(self.category_box, 0, 3)
         form.addWidget(QLabel("Sort"), 0, 4)
         form.addWidget(self.sort_box, 0, 5)
-        filter_btn = QPushButton("Apply")
+        filter_btn = QPushButton("Filter")
         filter_btn.clicked.connect(self.refresh)
         form.addWidget(filter_btn, 0, 6)
-        cart_btn = QPushButton("Cart")
+        self.cart_label = QLabel("Cart (0)")
+        cart_btn = QPushButton("Checkout")
         cart_btn.clicked.connect(self.open_cart.emit)
-        form.addWidget(cart_btn, 0, 7)
+        form.addWidget(self.cart_label, 0, 7)
+        form.addWidget(cart_btn, 0, 8)
         layout.addLayout(form)
 
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Title", "Category", "Price", "Stock", "Actions"])
         self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setStyleSheet("font-family: 'Courier New';")
         layout.addWidget(self.table)
         self.setLayout(layout)
         self.refresh()
+
+    def update_cart_count(self, count: int) -> None:
+        self.cart_label.setText(f"Cart ({count})")
 
     def refresh(self) -> None:
         # refresh categories dynamically to stay in sync with CRUD
@@ -580,11 +680,8 @@ class GalleryPage(QWidget):
             self.table.setCellWidget(idx, 4, action_container)
 
     def show_detail(self, art: Tuple) -> None:
-        QMessageBox.information(
-            self,
-            f"Artwork — {art[1]}",
-            f"Title: {art[1]}\nCategory: {art[2]}\nPrice: ₹{art[3]:.0f}\nStock: {art[4]}\n\n{art[5] or 'No description yet.'}",
-        )
+        dialog = ArtworkDetailDialog(art, self.add_to_cart.emit, self)
+        dialog.exec_()
 
 
 class LoginPage(QWidget):
@@ -597,22 +694,17 @@ class LoginPage(QWidget):
         layout.setAlignment(Qt.AlignCenter)
 
         title = QLabel("ART HUB — Login")
-        title.setStyleSheet("font-size: 20px; font-weight: 600; margin-bottom: 12px;")
+        title.setStyleSheet("font-size: 20px; font-weight: 700; font-family: 'Courier New';")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         card = QFrame()
         card.setStyleSheet(
-            "QFrame {"
-            "  border: 1px solid #888;"
-            "  border-radius: 10px;"
-            "  padding: 18px;"
-            "  background: #f9f9f9;"
-            "}"
+            "QFrame { border: 1px dashed #4a4a4a; border-radius: 10px; padding: 20px; background: #fdfdfb; }"
         )
-        card.setMaximumWidth(520)
+        card.setMaximumWidth(560)
         card_layout = QVBoxLayout()
-        card_layout.setSpacing(12)
+        card_layout.setSpacing(14)
 
         form = QFormLayout()
         form.setLabelAlignment(Qt.AlignRight)
@@ -622,28 +714,20 @@ class LoginPage(QWidget):
         form_wrapper = QWidget()
         form_wrapper.setLayout(form)
         form_wrapper.setStyleSheet(
-            "QLabel {"
-            "  color: #1d1d1d;"
-            "  font-weight: 600;"
-            "}"
-            "QLineEdit {"
-            "  background: #ffffff;"
-            "  color: #111111;"
-            "  border: 1px solid #8aa6d6;"
-            "  padding: 9px;"
-            "  border-radius: 6px;"
-            "}"
-            "QLineEdit:focus {"
-            "  border: 2px solid #1e6bd6;"
-            "}"
+            "QLabel { color: #1d1d1d; font-weight: 700; font-family: 'Courier New'; }"
+            "QLineEdit { background: #ffffff; color: #111111; border: 1px solid #1e6bd6; padding: 9px; border-radius: 6px; font-family: 'Courier New'; }"
+            "QLineEdit:focus { border: 2px solid #0e4ba8; }"
         )
         self.email_input = QLineEdit()
         self.email_input.setPlaceholderText("you@example.com")
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.Password)
         self.password_input.setPlaceholderText("Enter your password")
+        self.show_box = QCheckBox("Show/Hide")
+        self.show_box.stateChanged.connect(self._toggle_password)
         form.addRow("Email", self.email_input)
         form.addRow("Password", self.password_input)
+        form.addRow("", self.show_box)
         card_layout.addWidget(form_wrapper)
 
         btn_row = QHBoxLayout()
@@ -654,33 +738,20 @@ class LoginPage(QWidget):
         signup_btn = QPushButton("Sign up")
         signup_btn.clicked.connect(self.open_signup)
         login_btn.setStyleSheet(
-            "QPushButton {"
-            "  background-color: #1e6bd6;"
-            "  color: white;"
-            "  padding: 10px 14px;"
-            "  border-radius: 6px;"
-            "  font-weight: 600;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #1758b3;"
-            "}"
+            "QPushButton { background-color: #1e6bd6; color: white; padding: 10px 14px; border-radius: 6px; font-weight: 700; }"
+            "QPushButton:hover { background-color: #1758b3; }"
         )
         signup_btn.setStyleSheet(
-            "QPushButton {"
-            "  background-color: #ffffff;"
-            "  color: #1e6bd6;"
-            "  border: 1px solid #1e6bd6;"
-            "  padding: 10px 14px;"
-            "  border-radius: 6px;"
-            "  font-weight: 600;"
-            "}"
-            "QPushButton:hover {"
-            "  background-color: #e8f0ff;"
-            "}"
+            "QPushButton { background-color: #f0f6ff; color: #1e6bd6; border: 1px solid #1e6bd6; padding: 10px 14px; border-radius: 6px; font-weight: 700; }"
+            "QPushButton:hover { background-color: #e1edff; }"
         )
         btn_row.addWidget(login_btn)
         btn_row.addWidget(signup_btn)
         card_layout.addLayout(btn_row)
+
+        help_label = QLabel("Help: Trouble logging in? Contact owner.")
+        help_label.setStyleSheet("color: #444; font-family: 'Courier New';")
+        card_layout.addWidget(help_label)
 
         card.setLayout(card_layout)
         layout.addWidget(card)
@@ -694,6 +765,12 @@ class LoginPage(QWidget):
         else:
             QMessageBox.warning(self, "Login failed", "Invalid credentials. Try the defaults or create a new buyer account.")
 
+    def _toggle_password(self, state: int) -> None:
+        if state == Qt.Checked:
+            self.password_input.setEchoMode(QLineEdit.Normal)
+        else:
+            self.password_input.setEchoMode(QLineEdit.Password)
+
     def open_signup(self) -> None:
         dialog = SignupDialog(self.db, self)
         dialog.registered.connect(self.authenticated.emit)
@@ -705,12 +782,21 @@ class AdminDashboard(QWidget):
         super().__init__()
         self.db = db
         layout = QVBoxLayout()
+        layout.addWidget(QLabel("ART HUB — Admin Dashboard"))
         self.list = QListWidget()
-        layout.addWidget(QLabel("New order notifications"))
+        layout.addWidget(QLabel("Notifications"))
         layout.addWidget(self.list)
+        btn_row = QHBoxLayout()
+        self.call_btn = QPushButton("Call Buyer")
+        self.call_btn.clicked.connect(self.call_buyer)
+        self.view_btn = QPushButton("View Order")
+        self.view_btn.clicked.connect(self.view_order)
         self.mark_btn = QPushButton("Mark Contacted")
         self.mark_btn.clicked.connect(self.mark_contacted)
-        layout.addWidget(self.mark_btn)
+        btn_row.addWidget(self.call_btn)
+        btn_row.addWidget(self.view_btn)
+        btn_row.addWidget(self.mark_btn)
+        layout.addLayout(btn_row)
         self.setLayout(layout)
         self.refresh()
 
@@ -720,16 +806,38 @@ class AdminDashboard(QWidget):
             item = QListWidgetItem(
                 f"#{order[0]} | Buyer: {order[1]} | {order[6]} | Status: {order[4]} | {order[3]}"
             )
-            item.setData(Qt.UserRole, order[0])
+            item.setData(Qt.UserRole, order)
             self.list.addItem(item)
 
     def mark_contacted(self) -> None:
         item = self.list.currentItem()
         if not item:
             return
-        order_id = item.data(Qt.UserRole)
-        self.db.mark_contacted(order_id)
+        order = item.data(Qt.UserRole)
+        self.db.mark_contacted(order[0])
         self.refresh()
+
+    def _selected_order(self) -> Optional[Tuple]:
+        item = self.list.currentItem()
+        if not item:
+            return None
+        return item.data(Qt.UserRole)
+
+    def call_buyer(self) -> None:
+        order = self._selected_order()
+        if not order:
+            return
+        QMessageBox.information(self, "Call Buyer", f"Phone: {order[2]}\nAddress: {order[3]}")
+
+    def view_order(self) -> None:
+        order = self._selected_order()
+        if not order:
+            return
+        QMessageBox.information(
+            self,
+            "Order Details",
+            f"Order #{order[0]}\nBuyer: {order[1]}\nPhone: {order[2]}\nAddress: {order[3]}\nItems: {order[6] or ''}",
+        )
 
 
 class OrdersHistory(QWidget):
@@ -858,12 +966,15 @@ class SettingsPage(QWidget):
     def __init__(self, db: DatabaseManager):
         super().__init__()
         self.db = db
-        layout = QFormLayout()
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel("Owner Profile (used by Contact Dialog & Notifications)"))
+        form = QFormLayout()
         self.owner_input = QLineEdit()
         self.phone_input = QLineEdit()
-        layout.addRow("Owner Name", self.owner_input)
-        layout.addRow("Owner Phone", self.phone_input)
-        save_btn = QPushButton("Save")
+        form.addRow("Owner Name", self.owner_input)
+        form.addRow("Owner Phone", self.phone_input)
+        layout.addLayout(form)
+        save_btn = QPushButton("Save Changes")
         save_btn.clicked.connect(self.save)
         layout.addWidget(save_btn)
         self.setLayout(layout)
@@ -942,6 +1053,7 @@ class MainWindow(QMainWindow):
         self.login.email_input.clear()
         self.login.password_input.clear()
         self.logout_action.setEnabled(False)
+        self.gallery.update_cart_count(0)
         self.stack.setCurrentWidget(self.login)
 
     def add_artwork_to_cart(self, art_id: int) -> None:
@@ -952,11 +1064,13 @@ class MainWindow(QMainWindow):
             return
         self.cart[art_id] = current_qty + 1
         QMessageBox.information(self, "Added", "Artwork added to cart.")
+        self.gallery.update_cart_count(sum(self.cart.values()))
 
     def show_cart(self) -> None:
         dialog = CartDialog(self.db, self.cart, self)
         dialog.checkout_requested.connect(self.show_checkout)
         dialog.exec_()
+        self.gallery.update_cart_count(sum(self.cart.values()))
 
     def show_checkout(self) -> None:
         checkout = CheckoutDialog(self.db, self.cart, self)
@@ -967,15 +1081,12 @@ class MainWindow(QMainWindow):
         owner_name, owner_phone = self.db.get_settings()
         contact = ContactOwnerDialog(owner_name, owner_phone, self)
         contact.exec_()
-        order, lines = self.db.get_order_details(order_id)
-        titles = ", ".join([f"{l[0]} x{l[1]}" for l in lines])
-        QMessageBox.information(
-            self,
-            "Order confirmation",
-            f"Order ID: ORD-{order[0]:04d}\nStatus: {order[4]}\nItems: {titles}\nNext: Call {owner_phone} to coordinate delivery.",
-        )
+        order, _ = self.db.get_order_details(order_id)
+        confirmation = OrderConfirmationDialog(order[0], owner_phone, self)
+        confirmation.exec_()
         self.cart.clear()
         self.gallery.refresh()
+        self.gallery.update_cart_count(0)
         self.admin_panel.refresh()
 
 

@@ -3,9 +3,10 @@
 A standalone, offline-friendly desktop application for Ms. Priya Sharma to manage artwork browsing and Cash-on-Delivery orders. The app follows the provided IA wireframes and diagrams: buyers can explore a gallery, view details, add items to a cart, and confirm COD checkout that immediately shows the owner's contact. Admins receive notifications for every order, manage artwork inventory through CRUD, and update the contact profile stored in SQLite.
 
 ## Features aligned to success criteria
+- **Login & signup card:** Centered bordered login matches the provided wireframe with show/hide password and an inline signup option for buyers.
 - **Gallery with stock-aware cards (SC1):** Search, category and sort controls feed a table of artworks with live stock counts. Disabled “Add to cart” buttons prevent overselling.
 - **Checkout with validation (SC2):** Buyers enter name, phone, and address; orders are rejected if fields are missing or stock is insufficient.
-- **Contact Owner dialog (SC3 & SC7):** After confirming an order, a modal displays the latest owner name and phone from the `settings` table.
+- **Contact Owner dialog (SC3 & SC7):** After confirming an order, a modal displays the latest owner name and phone from the `settings` table and the buyer-facing confirmation card mirrors the IA mock.
 - **Admin notifications (SC4):** The dashboard surfaces new orders with buyer details, items, status, and timestamps, plus a quick “Mark Contacted” action.
 - **Order history (SC4 & SC6):** A dedicated tab shows all orders with their items, status, and creation time for auditing and record keeping.
 - **Artwork CRUD (SC5):** Admins can add, edit, and delete artworks, updating both the UI and database.
