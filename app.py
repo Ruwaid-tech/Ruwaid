@@ -1,3 +1,4 @@
+import base64
 import os
 import re
 import sqlite3
@@ -6,11 +7,8 @@ import hashlib
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
-PHONE_REGEX = re.compile(r"^\+?[1-9]\d{7,14}$")
-
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIntValidator
+from PyQt5.QtGui import QIntValidator, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
     QAction,
@@ -29,6 +27,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QStackedWidget,
     QTableWidget,
@@ -39,7 +38,42 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
+EMAIL_REGEX = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+PHONE_REGEX = re.compile(r"^\+?[1-9]\d{7,14}$")
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+IMAGES_DIR = os.path.join(BASE_DIR, "images")
+DEFAULT_IMAGE_RELATIVE = os.path.join("images", "default_placeholder.png")
+DEFAULT_IMAGE_PATH = os.path.join(IMAGES_DIR, "default_placeholder.png")
 DB_PATH = "art_hub.db"
+
+
+PLACEHOLDER_BASE64 = (
+    "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB6ElEQVR4nO2Y0XLDIAyGXzfv/6eaNk8JAlkN+77S61zQh5QjFJo7HxjXIxcti5rt4+77VZ1yrEajUbDZk9K9eqP/8My7bFizLGGNzBC59A5D96u12fB42Gkq+CFw+nw+Xy+dI7K42AZB4BDpum0vgCIFaUEGAu12+w3c3IuIFp8nWXwqE2nANbOVBOcJJExqUSCIFHwLQPOW7XabQd1L7qKsGm1mM0mJiSkOu53M0YoYgCEkIGhsDmu6pZpKQQm9uBqGctBpkEer1er6vcYtU0GoFUKsVqt4rfb7W6zWQyHQ0FA2m80qlYrOJvNhuPxwO7ujo4ODwZXIZXKhUAgJvjKoIgzLWwsBCwWCz8nFB6Pt+MveB1HB2dQRBEBQKfTifw83mEolEomk0+lxWq2Gw2GgnQLRarVSBwfx+PxeDwQBIFqthsrEajQZLpcThcLDea7tcMwDEMBmEwGAwGAzqdDrFYDCgUCs1m0y21YF+TyeTyWTy0Gg0rt1uFxWKxWKyNlsFohEAhWKRQKiUSC63abDbVajYaDAaVSqVCt9s+u12Op3O13V1d6ugwGAx6vR7C4TAajYbq9Xo+Hv5pC9Wq1UqlUrl0qk0gk8nx+IBAIel0us9msoG1um2Xy0Wg01Go3m83lw7bf7iEwm8+FwuG+tMIxgMh2EwmPV6fTqd7t9Pt9nM5vNVqNVqpVyuUy2Wy6XQ6w2w2f3//E6PNBz9o1AAAAAElFTkSuQmCC"
+)
+
+
+def ensure_placeholder_assets() -> None:
+    """Create lightweight placeholder PNGs as text-only assets to avoid binary commits."""
+    os.makedirs(IMAGES_DIR, exist_ok=True)
+    image_names = [
+        "default_placeholder.png",
+        "waves.png",
+        "floral_bloom.png",
+        "city_lines.png",
+        "monsoon.png",
+        "terracotta.png",
+        "aurora.png",
+        "heritage_door.png",
+        "lotus_study.png",
+        "sunset_ridge.png",
+        "quiet_river.png",
+    ]
+    data = base64.b64decode(PLACEHOLDER_BASE64)
+    for name in image_names:
+        dest = os.path.join(IMAGES_DIR, name)
+        if not os.path.exists(dest):
+            with open(dest, "wb") as f:
+                f.write(data)
 
 
 @dataclass
@@ -53,12 +87,29 @@ def hash_password(password: str) -> str:
     return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
 
+def resolve_image_path(path: Optional[str]) -> str:
+    """Return an absolute image path with a safe fallback placeholder."""
+    if path and path.strip():
+        candidate = path if os.path.isabs(path) else os.path.join(BASE_DIR, path)
+        if os.path.exists(candidate):
+            return candidate
+    return DEFAULT_IMAGE_PATH
+
+
 class DatabaseManager:
+    """Responsible for schema creation and seeding."""
+
     def __init__(self, db_path: str = DB_PATH):
         self.db_path = db_path
+        ensure_placeholder_assets()
         self._ensure_db()
+        self.users = UserRepo(db_path)
+        self.artworks = ArtworkRepo(db_path)
+        self.orders = OrderRepo(db_path)
+        self.settings = SettingsRepo(db_path)
 
     def _ensure_db(self) -> None:
+        os.makedirs(os.path.dirname(self.db_path) or ".", exist_ok=True)
         with sqlite3.connect(self.db_path) as conn:
             cur = conn.cursor()
             cur.execute(
@@ -119,7 +170,6 @@ class DatabaseManager:
                 """
             )
             conn.commit()
-            # ensure alt_phone exists on older databases
             cur.execute("PRAGMA table_info(settings)")
             cols = [r[1] for r in cur.fetchall()]
             if "alt_phone" not in cols:
@@ -144,27 +194,50 @@ class DatabaseManager:
             if cur.fetchone()[0] == 0:
                 cur.execute(
                     "INSERT INTO settings (id, owner_name, owner_phone, alt_phone) VALUES (1, ?, ?, ?)",
-                    ("Ms. Priya Sharma", "+91-9300000000", "+91-8000000000"),
+                    ("Ms. Priya Sharma", "+91-98XXXXXXX5", "+91-80XXXXXXXX"),
                 )
             cur.execute("SELECT COUNT(*) FROM artworks")
+            image_map = {
+                "Waves": os.path.join("images", "waves.png"),
+                "Floral Bloom": os.path.join("images", "floral_bloom.png"),
+                "City Lines": os.path.join("images", "city_lines.png"),
+                "Monsoon": os.path.join("images", "monsoon.png"),
+                "Terracotta": os.path.join("images", "terracotta.png"),
+                "Aurora": os.path.join("images", "aurora.png"),
+                "Heritage Door": os.path.join("images", "heritage_door.png"),
+                "Lotus Study": os.path.join("images", "lotus_study.png"),
+                "Sunset Ridge": os.path.join("images", "sunset_ridge.png"),
+                "Quiet River": os.path.join("images", "quiet_river.png"),
+            }
             if cur.fetchone()[0] == 0:
                 sample_artworks = [
-                    ("Waves", "Seascape", 1500.0, "", 12, "Ink on paper celebrating tidal rhythms."),
-                    ("Floral Bloom", "Floral", 1800.0, "", 8, "Layered gouache petals with soft gradients."),
-                    ("City Lines", "Urban", 1400.0, "", 10, "Minimal skyline rendered with gold ink."),
-                    ("Monsoon", "Seascape", 1650.0, "", 6, "Stormy clouds over a quiet harbour."),
-                    ("Terracotta", "Abstract", 1100.0, "", 9, "Earthy tones with textured brushwork."),
-                    ("Aurora", "Abstract", 2100.0, "", 5, "Bright ribbons of light across a dark sky."),
-                    ("Heritage Door", "Urban", 950.0, "", 7, "Detailed doorway from old Chennai quarters."),
-                    ("Lotus Study", "Floral", 1200.0, "", 10, "Pencil and watercolor botanical notes."),
-                    ("Sunset Ridge", "Landscape", 1750.0, "", 11, "Warm light on distant ridgelines."),
-                    ("Quiet River", "Landscape", 1600.0, "", 13, "Evening reflections with soft ripples."),
+                    ("Waves", "Seascape", 1500.0, image_map["Waves"], 12, "Ink on paper celebrating tidal rhythms."),
+                    ("Floral Bloom", "Floral", 1800.0, image_map["Floral Bloom"], 8, "Layered gouache petals with soft gradients."),
+                    ("City Lines", "Urban", 1400.0, image_map["City Lines"], 10, "Minimal skyline rendered with gold ink."),
+                    ("Monsoon", "Seascape", 1650.0, image_map["Monsoon"], 6, "Stormy clouds over a quiet harbour."),
+                    ("Terracotta", "Abstract", 1100.0, image_map["Terracotta"], 9, "Earthy tones with textured brushwork."),
+                    ("Aurora", "Abstract", 2100.0, image_map["Aurora"], 5, "Bright ribbons of light across a dark sky."),
+                    ("Heritage Door", "Urban", 950.0, image_map["Heritage Door"], 7, "Detailed doorway from old Chennai quarters."),
+                    ("Lotus Study", "Floral", 1200.0, image_map["Lotus Study"], 10, "Pencil and watercolor botanical notes."),
+                    ("Sunset Ridge", "Landscape", 1750.0, image_map["Sunset Ridge"], 11, "Warm light on distant ridgelines."),
+                    ("Quiet River", "Landscape", 1600.0, image_map["Quiet River"], 13, "Evening reflections with soft ripples."),
                 ]
                 cur.executemany(
                     "INSERT INTO artworks (title, category, price, image_path, stock, description) VALUES (?, ?, ?, ?, ?, ?)",
                     sample_artworks,
                 )
+            # Backfill images for existing records missing image paths
+            cur.execute("SELECT id, title, image_path FROM artworks")
+            for art_id, title, path in cur.fetchall():
+                if (not path or path.strip() == "") and title in image_map:
+                    cur.execute("UPDATE artworks SET image_path=? WHERE id=?", (image_map[title], art_id))
             conn.commit()
+
+
+
+class UserRepo:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
 
     def validate_user(self, email: str, password: str) -> Optional[User]:
         hashed = hash_password(password)
@@ -199,8 +272,13 @@ class DatabaseManager:
             conn.commit()
             return cur.lastrowid
 
-    def get_artworks(self, search: str = "", category: str = "All", sort: str = "Title") -> List[Tuple]:
-        query = "SELECT id, title, category, price, stock, description FROM artworks"
+
+class ArtworkRepo:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+
+    def get_artworks(self, search: str = "", category: str = "All", sort: str = "Price") -> List[Tuple]:
+        query = "SELECT id, title, category, price, stock, description, image_path FROM artworks"
         filters: List[str] = []
         params: List[str] = []
         if search:
@@ -211,18 +289,18 @@ class DatabaseManager:
             params.append(category)
         if filters:
             query += " WHERE " + " AND ".join(filters)
-        if sort == "Price ↑":
-            query += " ORDER BY price ASC"
-        elif sort == "Price ↓":
+        if sort == "Price ↓":
             query += " ORDER BY price DESC"
         else:
-            query += " ORDER BY title ASC"
+            query += " ORDER BY price ASC"
         with sqlite3.connect(self.db_path) as conn:
             return conn.cursor().execute(query, params).fetchall()
 
     def get_categories(self) -> List[str]:
         with sqlite3.connect(self.db_path) as conn:
-            rows = conn.cursor().execute("SELECT DISTINCT category FROM artworks WHERE category IS NOT NULL").fetchall()
+            rows = conn.cursor().execute(
+                "SELECT DISTINCT category FROM artworks WHERE category IS NOT NULL"
+            ).fetchall()
         categories = [r[0] for r in rows if r[0]]
         return ["All"] + sorted(categories)
 
@@ -230,23 +308,29 @@ class DatabaseManager:
         with sqlite3.connect(self.db_path) as conn:
             cur = conn.cursor()
             cur.execute(
-                "SELECT id, title, category, price, stock, description FROM artworks WHERE id=?",
+                "SELECT id, title, category, price, stock, description, image_path FROM artworks WHERE id=?",
                 (artwork_id,),
             )
             return cur.fetchone()
 
-    def upsert_artwork(self, artwork_id: Optional[int], title: str, category: str, price: float, stock: int, description: str) -> None:
+    def upsert_artwork(
+        self, artwork_id: Optional[int], title: str, category: str, price: float, stock: int, description: str
+    ) -> None:
+        fallback_path = DEFAULT_IMAGE_RELATIVE
         with sqlite3.connect(self.db_path) as conn:
             cur = conn.cursor()
             if artwork_id:
+                cur.execute("SELECT image_path FROM artworks WHERE id=?", (artwork_id,))
+                existing = cur.fetchone()
+                image_path = existing[0] if existing and existing[0] else fallback_path
                 cur.execute(
-                    "UPDATE artworks SET title=?, category=?, price=?, stock=?, description=? WHERE id=?",
-                    (title, category, price, stock, description, artwork_id),
+                    "UPDATE artworks SET title=?, category=?, price=?, stock=?, description=?, image_path=? WHERE id=?",
+                    (title, category, price, stock, description, image_path, artwork_id),
                 )
             else:
                 cur.execute(
-                    "INSERT INTO artworks (title, category, price, stock, description) VALUES (?, ?, ?, ?, ?)",
-                    (title, category, price, stock, description),
+                    "INSERT INTO artworks (title, category, price, stock, image_path, description) VALUES (?, ?, ?, ?, ?, ?)",
+                    (title, category, price, stock, fallback_path, description),
                 )
             conn.commit()
 
@@ -255,12 +339,16 @@ class DatabaseManager:
             conn.cursor().execute("DELETE FROM artworks WHERE id=?", (artwork_id,))
             conn.commit()
 
+
+class OrderRepo:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+
     def create_order(self, buyer_name: str, phone: str, address: str, cart: Dict[int, int]) -> int:
         with sqlite3.connect(self.db_path) as conn:
             cur = conn.cursor()
-            # validate stock
             for art_id, qty in cart.items():
-                cur.execute("SELECT stock, price FROM artworks WHERE id=?", (art_id,))
+                cur.execute("SELECT stock FROM artworks WHERE id=?", (art_id,))
                 row = cur.fetchone()
                 if not row or row[0] < qty:
                     raise ValueError("Insufficient stock for selected artworks")
@@ -276,10 +364,7 @@ class DatabaseManager:
                     "INSERT INTO order_lines (order_id, artwork_id, qty, unit_price) VALUES (?, ?, ?, ?)",
                     (order_id, art_id, qty, price),
                 )
-                cur.execute(
-                    "UPDATE artworks SET stock = stock - ? WHERE id=?",
-                    (qty, art_id),
-                )
+                cur.execute("UPDATE artworks SET stock = stock - ? WHERE id=?", (qty, art_id))
             conn.commit()
             return order_id
 
@@ -302,21 +387,6 @@ class DatabaseManager:
             )
             lines = cur.fetchall()
             return order, lines
-
-    def get_settings(self) -> Tuple[str, str, str]:
-        with sqlite3.connect(self.db_path) as conn:
-            cur = conn.cursor()
-            cur.execute("SELECT owner_name, owner_phone, COALESCE(alt_phone, '') FROM settings WHERE id=1")
-            row = cur.fetchone()
-            return row if row else ("", "", "")
-
-    def update_settings(self, owner_name: str, owner_phone: str, alt_phone: str) -> None:
-        with sqlite3.connect(self.db_path) as conn:
-            conn.cursor().execute(
-                "UPDATE settings SET owner_name=?, owner_phone=?, alt_phone=? WHERE id=1",
-                (owner_name, owner_phone, alt_phone),
-            )
-            conn.commit()
 
     def fetch_notifications(self) -> List[Tuple]:
         with sqlite3.connect(self.db_path) as conn:
@@ -353,63 +423,117 @@ class DatabaseManager:
 
     def mark_contacted(self, order_id: int) -> None:
         with sqlite3.connect(self.db_path) as conn:
+            conn.cursor().execute("UPDATE orders SET status='Contacted' WHERE id=?", (order_id,))
+            conn.commit()
+
+    def metrics(self) -> Tuple[int, int, float]:
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*), SUM(CASE WHEN status='Pending COD' THEN 1 ELSE 0 END) FROM orders")
+            total, pending = cur.fetchone()
+            cur.execute(
+                "SELECT SUM(order_lines.qty * order_lines.unit_price) FROM order_lines"
+            )
+            revenue = cur.fetchone()[0] or 0.0
+            return total or 0, pending or 0, revenue
+
+
+class SettingsRepo:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+
+    def get_settings(self) -> Tuple[str, str, str]:
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT owner_name, owner_phone, COALESCE(alt_phone, '') FROM settings WHERE id=1")
+            row = cur.fetchone()
+            return row if row else ("", "", "")
+
+    def update_settings(self, owner_name: str, owner_phone: str, alt_phone: str) -> None:
+        with sqlite3.connect(self.db_path) as conn:
             conn.cursor().execute(
-                "UPDATE orders SET status='Contacted' WHERE id=?",
-                (order_id,),
+                "UPDATE settings SET owner_name=?, owner_phone=?, alt_phone=? WHERE id=1",
+                (owner_name, owner_phone, alt_phone),
             )
             conn.commit()
 
 
-class ArtworkDetailDialog(QDialog):
-    def __init__(self, art: Tuple, on_add, parent: QWidget | None = None):
+class NotificationManager:
+    def __init__(self):
+        self.entries: List[str] = []
+
+    def push_new_order(self, order_id: int, buyer: str, phone: str, address: str, items: str) -> None:
+        message = f"⚠ NEW ORDER {order_id}: {buyer} | {phone} | {address} | {items}"
+        self.entries.insert(0, message)
+
+    def recent(self) -> List[str]:
+        return list(self.entries)
+
+
+class DetailUI(QDialog):
+    add_with_qty = pyqtSignal(int, int)
+
+    def __init__(self, art: Tuple, parent: QWidget | None = None):
         super().__init__(parent)
         self.art = art
-        self.on_add = on_add
-        self.setWindowTitle(f"ART HUB — {art[1]}")
+        self.setWindowTitle("ART HUB — Artwork Detail")
         layout = QVBoxLayout()
 
-        header = QLabel("ART HUB — Artwork Detail")
-        header.setStyleSheet("font-family: 'Courier New'; font-weight: 700;")
+        header = QLabel("ART HUB – Artwork Detail")
         header.setAlignment(Qt.AlignCenter)
+        header.setStyleSheet("font-family: 'Courier New'; font-weight: 700;")
         layout.addWidget(header)
 
-        card = QFrame()
-        card.setStyleSheet(
-            "QFrame { border: 1px solid #aaa; border-radius: 8px; padding: 12px; background: #fdfdfd; font-family: 'Courier New'; }"
-        )
-        info = QVBoxLayout()
-        info.addWidget(QLabel(f"Title: {art[1]}"))
-        info.addWidget(QLabel(f"Category: {art[2] or 'N/A'}"))
-        info.addWidget(QLabel(f"Price: ₹{art[3]:.0f}"))
-        info.addWidget(QLabel(f"In Stock: {art[4]}"))
-        desc = QLabel(art[5] or "No description yet.")
+        body = QGridLayout()
+        image = QLabel()
+        image.setFixedSize(220, 180)
+        pix = QPixmap(resolve_image_path(self.art[6]))
+        if pix.isNull():
+            image.setText("[Large Image]")
+            image.setAlignment(Qt.AlignCenter)
+            image.setStyleSheet("border: 1px dashed #aaa;")
+        else:
+            image.setPixmap(pix.scaled(image.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        body.addWidget(image, 0, 0, 3, 1)
+
+        body.addWidget(QLabel(f"Title: {self.art[1]}"), 0, 1)
+        body.addWidget(QLabel(f"Price: ₹{self.art[3]:.0f}"), 1, 1)
+        body.addWidget(QLabel(f"In Stock: {self.art[4]}"), 1, 2)
+        desc = QLabel(self.art[5] or "No description yet.")
         desc.setWordWrap(True)
-        info.addWidget(desc)
+        body.addWidget(desc, 2, 1, 1, 2)
+        qty_row = QHBoxLayout()
+        qty_row.addWidget(QLabel("Qty:"))
+        self.qty = QSpinBox()
+        self.qty.setMinimum(1)
+        self.qty.setMaximum(max(1, self.art[4]))
+        qty_row.addWidget(self.qty)
+        body.addLayout(qty_row, 3, 1)
+        layout.addLayout(body)
+
         btn_row = QHBoxLayout()
         add_btn = QPushButton("Add to Cart")
-        add_btn.setEnabled(art[4] > 0)
+        add_btn.setEnabled(self.art[4] > 0)
         add_btn.clicked.connect(self._add)
         back_btn = QPushButton("Back to Gallery")
         back_btn.clicked.connect(self.reject)
         btn_row.addWidget(add_btn)
         btn_row.addWidget(back_btn)
-        info.addLayout(btn_row)
-        card.setLayout(info)
-        layout.addWidget(card)
+        layout.addLayout(btn_row)
         self.setLayout(layout)
 
     def _add(self) -> None:
-        self.on_add(self.art[0])
+        self.add_with_qty.emit(self.art[0], self.qty.value())
         self.accept()
 
 
-class ContactOwnerDialog(QDialog):
+class ContactDialogUI(QDialog):
     def __init__(self, owner_name: str, owner_phone: str, alt_phone: str, parent: QWidget | None = None):
         super().__init__(parent)
         self.setWindowTitle("Contact Owner")
         layout = QVBoxLayout()
 
-        header = QLabel("Order Recorded")
+        header = QLabel("✓ Order Recorded")
         header.setAlignment(Qt.AlignCenter)
         header.setStyleSheet("font-family: 'Courier New'; font-weight: bold; font-size: 14px;")
         layout.addWidget(header)
@@ -443,7 +567,10 @@ class OrderConfirmationDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Order Confirmation")
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Thank you!"))
+        title = QLabel("🎉 Thank You!")
+        title.setAlignment(Qt.AlignCenter)
+        title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        layout.addWidget(title)
         card = QFrame()
         card.setStyleSheet(
             "QFrame { border: 1px dashed #666; border-radius: 8px; padding: 12px; font-family: 'Courier New'; background: #fff; }"
@@ -460,17 +587,19 @@ class OrderConfirmationDialog(QDialog):
         self.setLayout(layout)
 
 
-class CheckoutDialog(QDialog):
+class CheckoutUI(QDialog):
     order_completed = pyqtSignal(int)
 
-    def __init__(self, db: DatabaseManager, cart: Dict[int, int], parent: QWidget | None = None):
+    def __init__(self, orders: OrderRepo, artworks: ArtworkRepo, settings: SettingsRepo, cart: Dict[int, int], parent: QWidget | None = None):
         super().__init__(parent)
-        self.db = db
+        self.orders = orders
+        self.artworks = artworks
+        self.settings = settings
         self.cart = cart
-        self.setWindowTitle("ART HUB — Checkout")
+        self.setWindowTitle("ART HUB – Checkout")
         layout = QVBoxLayout()
 
-        cart_box = QGroupBox("Cart Summary (COD only)")
+        cart_box = QGroupBox("CART")
         cart_box.setStyleSheet("QGroupBox { font-weight: 700; font-family: 'Courier New'; }")
         cart_layout = QVBoxLayout()
         self.cart_summary = QLabel()
@@ -479,13 +608,13 @@ class CheckoutDialog(QDialog):
         cart_box.setLayout(cart_layout)
         layout.addWidget(cart_box)
 
-        form_box = QGroupBox("Buyer Details")
+        form_box = QGroupBox("BUYER DETAILS")
         form_box.setStyleSheet("QGroupBox { font-weight: 700; font-family: 'Courier New'; }")
         form = QFormLayout()
         self.name_input = QLineEdit()
         self.phone_input = QLineEdit()
         self.address_input = QTextEdit()
-        self.phone_input.setPlaceholderText("e.g., +91-9000000000")
+        self.phone_input.setPlaceholderText("+9198XXXXXXXX")
         self.address_input.setPlaceholderText("Flat / Street / City")
         form.addRow("Name", self.name_input)
         form.addRow("Phone", self.phone_input)
@@ -493,18 +622,26 @@ class CheckoutDialog(QDialog):
         form_box.setLayout(form)
         layout.addWidget(form_box)
 
-        btn = QPushButton("Confirm Order — Cash on Delivery")
-        btn.clicked.connect(self.handle_confirm)
-        layout.addWidget(btn)
+        payment_label = QLabel("Payment: (•) Cash on Delivery")
+        layout.addWidget(payment_label)
+
+        btn_row = QHBoxLayout()
+        confirm_btn = QPushButton("Confirm Order")
+        confirm_btn.clicked.connect(self.handle_confirm)
+        back_btn = QPushButton("Back")
+        back_btn.clicked.connect(self.reject)
+        btn_row.addWidget(confirm_btn)
+        btn_row.addWidget(back_btn)
+        layout.addLayout(btn_row)
         self.setLayout(layout)
         self.refresh_summary()
 
     def refresh_summary(self) -> None:
         parts = []
         for art_id, qty in self.cart.items():
-            art = self.db.get_artwork(art_id)
+            art = self.artworks.get_artwork(art_id)
             if art:
-                parts.append(f"• {art[1]} x {qty} = ₹{art[3] * qty:.0f}")
+                parts.append(f"{art[1]} × {qty} – ₹{art[3] * qty:.0f}")
         self.cart_summary.setText("\n".join(parts))
 
     def handle_confirm(self) -> None:
@@ -518,7 +655,7 @@ class CheckoutDialog(QDialog):
             QMessageBox.warning(self, "Phone", "Please enter a valid phone in E.164 format (e.g., +919900000000).")
             return
         try:
-            order_id = self.db.create_order(name, phone, address, self.cart)
+            order_id = self.orders.create_order(name, phone, address, self.cart)
         except ValueError as exc:
             QMessageBox.warning(self, "Stock issue", str(exc))
             return
@@ -529,9 +666,9 @@ class CheckoutDialog(QDialog):
 class SignupDialog(QDialog):
     registered = pyqtSignal(User)
 
-    def __init__(self, db: DatabaseManager, parent: QWidget | None = None):
+    def __init__(self, users: UserRepo, parent: QWidget | None = None):
         super().__init__(parent)
-        self.db = db
+        self.users = users
         self.setWindowTitle("Create Account")
         layout = QVBoxLayout()
         form = QFormLayout()
@@ -559,11 +696,11 @@ class SignupDialog(QDialog):
             QMessageBox.warning(self, "Weak password", "Please use at least 6 characters.")
             return
         try:
-            self.db.create_buyer(name, email, password)
+            self.users.create_buyer(name, email, password)
         except ValueError as exc:
             QMessageBox.warning(self, "Cannot create account", str(exc))
             return
-        user = self.db.validate_user(email, password)
+        user = self.users.validate_user(email, password)
         if user:
             self.registered.emit(user)
             QMessageBox.information(self, "Welcome", "Account created. You are now signed in.")
@@ -573,9 +710,9 @@ class SignupDialog(QDialog):
 class CartDialog(QDialog):
     checkout_requested = pyqtSignal()
 
-    def __init__(self, db: DatabaseManager, cart: Dict[int, int], parent: QWidget | None = None):
+    def __init__(self, artworks: ArtworkRepo, cart: Dict[int, int], parent: QWidget | None = None):
         super().__init__(parent)
-        self.db = db
+        self.artworks = artworks
         self.cart = cart
         self.setWindowTitle("Cart")
         self.layout = QVBoxLayout()
@@ -583,16 +720,21 @@ class CartDialog(QDialog):
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["Artwork", "Price", "Qty", "Remove"])
         self.layout.addWidget(self.table)
+        btn_row = QHBoxLayout()
         self.checkout_btn = QPushButton("Checkout")
         self.checkout_btn.clicked.connect(self._on_checkout)
-        self.layout.addWidget(self.checkout_btn)
+        btn_row.addWidget(self.checkout_btn)
+        back_btn = QPushButton("Back")
+        back_btn.clicked.connect(self.reject)
+        btn_row.addWidget(back_btn)
+        self.layout.addLayout(btn_row)
         self.setLayout(self.layout)
         self.refresh()
 
     def refresh(self) -> None:
         self.table.setRowCount(0)
         for row_idx, (art_id, qty) in enumerate(self.cart.items()):
-            art = self.db.get_artwork(art_id)
+            art = self.artworks.get_artwork(art_id)
             if not art:
                 continue
             self.table.insertRow(row_idx)
@@ -601,6 +743,7 @@ class CartDialog(QDialog):
             spin = QSpinBox()
             spin.setValue(qty)
             spin.setMinimum(1)
+            spin.setMaximum(max(1, art[4]))
             spin.valueChanged.connect(lambda value, a_id=art_id: self._update_qty(a_id, value))
             self.table.setCellWidget(row_idx, 2, spin)
             remove_btn = QPushButton("Remove")
@@ -622,46 +765,48 @@ class CartDialog(QDialog):
         self.accept()
 
 
-class GalleryPage(QWidget):
-    add_to_cart = pyqtSignal(int)
+class GalleryUI(QWidget):
+    add_to_cart = pyqtSignal(int, int)
     open_cart = pyqtSignal()
 
-    def __init__(self, db: DatabaseManager):
+    def __init__(self, artworks: ArtworkRepo):
         super().__init__()
-        self.db = db
+        self.artworks = artworks
         layout = QVBoxLayout()
-        header = QLabel("ART HUB — Gallery")
+        header = QLabel("ART HUB – Gallery")
         header.setAlignment(Qt.AlignCenter)
         header.setStyleSheet("font-weight: 700; font-size: 16px; font-family: 'Courier New';")
         layout.addWidget(header)
 
-        form = QGridLayout()
+        controls = QHBoxLayout()
+        controls.addWidget(QLabel("Search:"))
         self.search_input = QLineEdit()
+        controls.addWidget(self.search_input)
+        controls.addWidget(QLabel("Category:"))
         self.category_box = QComboBox()
+        controls.addWidget(self.category_box)
+        controls.addWidget(QLabel("Sort:"))
         self.sort_box = QComboBox()
-        self.sort_box.addItems(["Title", "Price ↑", "Price ↓"])
-        form.addWidget(QLabel("Search"), 0, 0)
-        form.addWidget(self.search_input, 0, 1)
-        form.addWidget(QLabel("Category"), 0, 2)
-        form.addWidget(self.category_box, 0, 3)
-        form.addWidget(QLabel("Sort"), 0, 4)
-        form.addWidget(self.sort_box, 0, 5)
+        self.sort_box.addItems(["Price ↑", "Price ↓"])
+        controls.addWidget(self.sort_box)
         filter_btn = QPushButton("Filter")
         filter_btn.clicked.connect(self.refresh)
-        form.addWidget(filter_btn, 0, 6)
-        self.cart_label = QLabel("Cart (0)")
-        cart_btn = QPushButton("Checkout")
-        cart_btn.clicked.connect(self.open_cart.emit)
-        form.addWidget(self.cart_label, 0, 7)
-        form.addWidget(cart_btn, 0, 8)
-        layout.addLayout(form)
+        controls.addWidget(filter_btn)
+        self.cart_label = QPushButton("Cart (0)")
+        self.cart_label.clicked.connect(self.open_cart.emit)
+        checkout_btn = QPushButton("Checkout")
+        checkout_btn.clicked.connect(self.open_cart.emit)
+        controls.addWidget(self.cart_label)
+        controls.addWidget(checkout_btn)
+        layout.addLayout(controls)
 
-        self.table = QTableWidget()
-        self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["Title", "Category", "Price", "Stock", "Actions"])
-        self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setStyleSheet("font-family: 'Courier New';")
-        layout.addWidget(self.table)
+        self.scroll = QScrollArea()
+        self.scroll.setWidgetResizable(True)
+        container = QWidget()
+        self.card_layout = QGridLayout()
+        container.setLayout(self.card_layout)
+        self.scroll.setWidget(container)
+        layout.addWidget(self.scroll)
         self.setLayout(layout)
         self.refresh()
 
@@ -669,55 +814,78 @@ class GalleryPage(QWidget):
         self.cart_label.setText(f"Cart ({count})")
 
     def refresh(self) -> None:
-        # refresh categories dynamically to stay in sync with CRUD
         current_category = self.category_box.currentText()
         self.category_box.blockSignals(True)
         self.category_box.clear()
-        categories = self.db.get_categories()
+        categories = self.artworks.get_categories()
         self.category_box.addItems(categories)
         if current_category in categories:
             self.category_box.setCurrentText(current_category)
         self.category_box.blockSignals(False)
 
+        while self.card_layout.count():
+            item = self.card_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
         search = self.search_input.text().strip()
         category = self.category_box.currentText() or "All"
-        sort = self.sort_box.currentText() or "Title"
-        artworks = self.db.get_artworks(search=search, category=category, sort=sort)
-        self.table.setRowCount(0)
-        for idx, art in enumerate(artworks):
-            self.table.insertRow(idx)
-            self.table.setItem(idx, 0, QTableWidgetItem(art[1]))
-            self.table.setItem(idx, 1, QTableWidgetItem(art[2] or ""))
-            self.table.setItem(idx, 2, QTableWidgetItem(f"₹{art[3]:.0f}"))
-            self.table.setItem(idx, 3, QTableWidgetItem(str(art[4])))
-            action_container = QWidget()
-            action_layout = QHBoxLayout()
-            action_layout.setContentsMargins(0, 0, 0, 0)
-            view_btn = QPushButton("View")
-            view_btn.clicked.connect(lambda _, a=art: self.show_detail(a))
-            add_btn = QPushButton("Add")
-            add_btn.setEnabled(art[4] > 0)
-            add_btn.clicked.connect(lambda _, a_id=art[0]: self.add_to_cart.emit(a_id))
-            action_layout.addWidget(view_btn)
-            action_layout.addWidget(add_btn)
-            action_container.setLayout(action_layout)
-            self.table.setCellWidget(idx, 4, action_container)
+        sort = self.sort_box.currentText() or "Price ↑"
+        for idx, art in enumerate(self.artworks.get_artworks(search=search, category=category, sort=sort)):
+            card = self._build_card(art)
+            row = idx // 2
+            col = idx % 2
+            self.card_layout.addWidget(card, row, col)
 
-    def show_detail(self, art: Tuple) -> None:
-        dialog = ArtworkDetailDialog(art, self.add_to_cart.emit, self)
+    def _build_card(self, art: Tuple) -> QWidget:
+        frame = QFrame()
+        frame.setStyleSheet(
+            "QFrame { border: 1px solid #ccc; border-radius: 8px; padding: 10px; background: #fdfdfd; font-family: 'Courier New'; }"
+        )
+        layout = QVBoxLayout()
+        img = QLabel()
+        img.setFixedSize(140, 100)
+        pix = QPixmap(resolve_image_path(art[6]))
+        if pix.isNull():
+            img.setText("[Image]")
+            img.setAlignment(Qt.AlignCenter)
+            img.setStyleSheet("border: 1px dashed #aaa;")
+        else:
+            img.setPixmap(pix.scaled(img.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation))
+        layout.addWidget(img)
+        title = QLabel(f"\"{art[1]}\"")
+        price = QLabel(f"₹{art[3]:.0f} | Stock: {art[4]}")
+        layout.addWidget(title)
+        layout.addWidget(price)
+        btn_row = QHBoxLayout()
+        view_btn = QPushButton("View Details")
+        view_btn.clicked.connect(lambda _, a=art: self._open_detail(a))
+        add_btn = QPushButton("Add to Cart")
+        add_btn.setEnabled(art[4] > 0)
+        add_btn.clicked.connect(lambda _, a_id=art[0]: self.add_to_cart.emit(a_id, 1))
+        btn_row.addWidget(view_btn)
+        btn_row.addWidget(add_btn)
+        layout.addLayout(btn_row)
+        frame.setLayout(layout)
+        return frame
+
+    def _open_detail(self, art: Tuple) -> None:
+        dialog = DetailUI(art, self)
+        dialog.add_with_qty.connect(self.add_to_cart.emit)
         dialog.exec_()
 
 
-class LoginPage(QWidget):
+class LoginUI(QWidget):
     authenticated = pyqtSignal(User)
 
-    def __init__(self, db: DatabaseManager):
+    def __init__(self, users: UserRepo):
         super().__init__()
-        self.db = db
+        self.users = users
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignCenter)
 
-        title = QLabel("ART HUB — Login")
+        title = QLabel("ART HUB – Login")
         title.setStyleSheet("font-size: 20px; font-weight: 700; font-family: 'Courier New';")
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
@@ -755,20 +923,11 @@ class LoginPage(QWidget):
         card_layout.addWidget(form_wrapper)
 
         btn_row = QHBoxLayout()
-        btn_row.setSpacing(10)
         login_btn = QPushButton("Login")
         login_btn.setDefault(True)
         login_btn.clicked.connect(self.handle_login)
         signup_btn = QPushButton("Sign up")
         signup_btn.clicked.connect(self.open_signup)
-        login_btn.setStyleSheet(
-            "QPushButton { background-color: #1e6bd6; color: white; padding: 10px 14px; border-radius: 6px; font-weight: 700; }"
-            "QPushButton:hover { background-color: #1758b3; }"
-        )
-        signup_btn.setStyleSheet(
-            "QPushButton { background-color: #f0f6ff; color: #1e6bd6; border: 1px solid #1e6bd6; padding: 10px 14px; border-radius: 6px; font-weight: 700; }"
-            "QPushButton:hover { background-color: #e1edff; }"
-        )
         btn_row.addWidget(login_btn)
         btn_row.addWidget(signup_btn)
         card_layout.addLayout(btn_row)
@@ -779,7 +938,6 @@ class LoginPage(QWidget):
 
         card.setLayout(card_layout)
         layout.addWidget(card)
-
         self.setLayout(layout)
 
     def handle_login(self) -> None:
@@ -787,7 +945,7 @@ class LoginPage(QWidget):
         if not EMAIL_REGEX.match(email):
             QMessageBox.warning(self, "Email", "Please enter a valid email address.")
             return
-        user = self.db.validate_user(email, self.password_input.text())
+        user = self.users.validate_user(email, self.password_input.text())
         if user:
             self.authenticated.emit(user)
         else:
@@ -800,17 +958,18 @@ class LoginPage(QWidget):
             self.password_input.setEchoMode(QLineEdit.Password)
 
     def open_signup(self) -> None:
-        dialog = SignupDialog(self.db, self)
+        dialog = SignupDialog(self.users, self)
         dialog.registered.connect(self.authenticated.emit)
         dialog.exec_()
 
 
 class AdminDashboard(QWidget):
-    def __init__(self, db: DatabaseManager):
+    def __init__(self, orders: OrderRepo, notifications: NotificationManager):
         super().__init__()
-        self.db = db
+        self.orders = orders
+        self.notifications = notifications
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("ART HUB — Admin Dashboard"))
+        layout.addWidget(QLabel("ART HUB – Admin Dashboard"))
         self.list = QListWidget()
         layout.addWidget(QLabel("Notifications"))
         layout.addWidget(self.list)
@@ -830,9 +989,11 @@ class AdminDashboard(QWidget):
 
     def refresh(self) -> None:
         self.list.clear()
-        for order in self.db.fetch_notifications():
+        for note in self.notifications.recent():
+            self.list.addItem(note)
+        for order in self.orders.fetch_notifications():
             item = QListWidgetItem(
-                f"⚠ NEW ORDER #{order[0]} | Buyer: {order[1]} | {order[6]} | Status: {order[4]} | {order[3]}"
+                f"⚠ NEW ORDER {order[5]} – Buyer: {order[1]} | Ph: {order[2]} | Artwork: {order[6] or ''}"
             )
             item.setData(Qt.UserRole, order)
             self.list.addItem(item)
@@ -842,7 +1003,9 @@ class AdminDashboard(QWidget):
         if not item:
             return
         order = item.data(Qt.UserRole)
-        self.db.mark_contacted(order[0])
+        if not order:
+            return
+        self.orders.mark_contacted(order[0])
         self.refresh()
 
     def _selected_order(self) -> Optional[Tuple]:
@@ -869,9 +1032,9 @@ class AdminDashboard(QWidget):
 
 
 class OrdersHistory(QWidget):
-    def __init__(self, db: DatabaseManager):
+    def __init__(self, orders: OrderRepo):
         super().__init__()
-        self.db = db
+        self.orders = orders
         layout = QVBoxLayout()
         self.table = QTableWidget()
         self.table.setColumnCount(7)
@@ -884,7 +1047,7 @@ class OrdersHistory(QWidget):
         self.refresh()
 
     def refresh(self) -> None:
-        orders = self.db.fetch_order_history()
+        orders = self.orders.fetch_order_history()
         self.table.setRowCount(0)
         for idx, order in enumerate(orders):
             self.table.insertRow(idx)
@@ -898,9 +1061,9 @@ class OrdersHistory(QWidget):
 
 
 class ArtworkCrud(QWidget):
-    def __init__(self, db: DatabaseManager):
+    def __init__(self, artworks: ArtworkRepo):
         super().__init__()
-        self.db = db
+        self.artworks = artworks
         layout = QVBoxLayout()
         self.table = QTableWidget()
         self.table.setColumnCount(6)
@@ -924,11 +1087,10 @@ class ArtworkCrud(QWidget):
         form.addRow("Stock", self.stock_input)
         form.addRow("Description", self.description_input)
         layout.addLayout(form)
-
         btns = QHBoxLayout()
         save_btn = QPushButton("Save")
-        delete_btn = QPushButton("Delete")
         save_btn.clicked.connect(self.save)
+        delete_btn = QPushButton("Delete")
         delete_btn.clicked.connect(self.delete)
         btns.addWidget(save_btn)
         btns.addWidget(delete_btn)
@@ -937,11 +1099,11 @@ class ArtworkCrud(QWidget):
         self.refresh()
 
     def refresh(self) -> None:
-        artworks = self.db.get_artworks()
+        artworks = self.artworks.get_artworks()
         self.table.setRowCount(0)
         for idx, art in enumerate(artworks):
             self.table.insertRow(idx)
-            for col, value in enumerate(art):
+            for col, value in enumerate(art[:6]):
                 self.table.setItem(idx, col, QTableWidgetItem(str(value)))
         self._clear_form()
 
@@ -979,29 +1141,29 @@ class ArtworkCrud(QWidget):
         category = self.category_input.text().strip()
         art_id_text = self.id_label.text()
         art_id = int(art_id_text) if art_id_text.isdigit() else None
-        self.db.upsert_artwork(art_id, title, category, price, stock, description)
+        self.artworks.upsert_artwork(art_id, title, category, price, stock, description)
         self.refresh()
 
     def delete(self) -> None:
         art_id_text = self.id_label.text()
         if not art_id_text.isdigit():
             return
-        self.db.delete_artwork(int(art_id_text))
+        self.artworks.delete_artwork(int(art_id_text))
         self.refresh()
 
 
 class SettingsPage(QWidget):
-    def __init__(self, db: DatabaseManager):
+    def __init__(self, settings: SettingsRepo):
         super().__init__()
-        self.db = db
+        self.settings = settings
         layout = QVBoxLayout()
-        layout.addWidget(QLabel("Owner Profile (used by Contact Dialog & Notifications)"))
+        layout.addWidget(QLabel("Settings – Owner Profile"))
         form = QFormLayout()
         self.owner_input = QLineEdit()
         self.phone_input = QLineEdit()
         self.alt_phone_input = QLineEdit()
         form.addRow("Owner Name", self.owner_input)
-        form.addRow("Owner Phone", self.phone_input)
+        form.addRow("Phone", self.phone_input)
         form.addRow("Alt Phone", self.alt_phone_input)
         layout.addLayout(form)
         save_btn = QPushButton("Save Changes")
@@ -1011,13 +1173,13 @@ class SettingsPage(QWidget):
         self.refresh()
 
     def refresh(self) -> None:
-        name, phone, alt = self.db.get_settings()
+        name, phone, alt = self.settings.get_settings()
         self.owner_input.setText(name)
         self.phone_input.setText(phone)
         self.alt_phone_input.setText(alt)
 
     def save(self) -> None:
-        self.db.update_settings(
+        self.settings.update_settings(
             self.owner_input.text().strip(),
             self.phone_input.text().strip(),
             self.alt_phone_input.text().strip(),
@@ -1025,18 +1187,43 @@ class SettingsPage(QWidget):
         QMessageBox.information(self, "Saved", "Contact details updated.")
 
 
-class AdminPanel(QWidget):
-    def __init__(self, db: DatabaseManager):
+class ReportsPage(QWidget):
+    def __init__(self, orders: OrderRepo):
+        super().__init__()
+        self.orders = orders
+        layout = QVBoxLayout()
+        self.total_label = QLabel()
+        self.pending_label = QLabel()
+        self.revenue_label = QLabel()
+        layout.addWidget(QLabel("Reports"))
+        layout.addWidget(self.total_label)
+        layout.addWidget(self.pending_label)
+        layout.addWidget(self.revenue_label)
+        self.setLayout(layout)
+        self.refresh()
+
+    def refresh(self) -> None:
+        total, pending, revenue = self.orders.metrics()
+        self.total_label.setText(f"Total orders: {total}")
+        self.pending_label.setText(f"Pending COD: {pending}")
+        self.revenue_label.setText(f"Revenue recorded: ₹{revenue:.0f}")
+
+
+class AdminDashboardUI(QWidget):
+    def __init__(self, db: DatabaseManager, notifications: NotificationManager):
         super().__init__()
         self.db = db
+        self.notifications = notifications
         tabs = QTabWidget()
-        self.dashboard = AdminDashboard(db)
-        self.history = OrdersHistory(db)
-        self.crud = ArtworkCrud(db)
-        self.settings = SettingsPage(db)
+        self.dashboard = AdminDashboard(db.orders, notifications)
+        self.history = OrdersHistory(db.orders)
+        self.crud = ArtworkCrud(db.artworks)
+        self.reports = ReportsPage(db.orders)
+        self.settings = SettingsPage(db.settings)
         tabs.addTab(self.dashboard, "Dashboard")
-        tabs.addTab(self.history, "Order History")
         tabs.addTab(self.crud, "Products")
+        tabs.addTab(self.history, "Orders")
+        tabs.addTab(self.reports, "Reports")
         tabs.addTab(self.settings, "Settings")
         layout = QVBoxLayout()
         layout.addWidget(tabs)
@@ -1046,14 +1233,17 @@ class AdminPanel(QWidget):
         self.dashboard.refresh()
         self.history.refresh()
         self.crud.refresh()
+        self.reports.refresh()
         self.settings.refresh()
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Art Hub - COD Orders")
+        self.setWindowTitle("Art Hub – Desktop Ordering System")
         self.db = DatabaseManager()
+        setattr(self.db.settings, "artwork_repo", self.db.artworks)
+        self.notifications = NotificationManager()
         self.cart: Dict[int, int] = {}
         self.stack = QStackedWidget()
         self.setCentralWidget(self.stack)
@@ -1062,21 +1252,21 @@ class MainWindow(QMainWindow):
         self.logout_action.setEnabled(False)
         account_menu = self.menuBar().addMenu("Account")
         account_menu.addAction(self.logout_action)
-        self.login = LoginPage(self.db)
+        self.login = LoginUI(self.db.users)
         self.login.authenticated.connect(self.after_login)
         self.stack.addWidget(self.login)
 
-        self.gallery = GalleryPage(self.db)
+        self.gallery = GalleryUI(self.db.artworks)
         self.gallery.add_to_cart.connect(self.add_artwork_to_cart)
         self.gallery.open_cart.connect(self.show_cart)
         self.stack.addWidget(self.gallery)
 
-        self.admin_panel = AdminPanel(self.db)
+        self.admin_panel = AdminDashboardUI(self.db, self.notifications)
         self.stack.addWidget(self.admin_panel)
 
     def after_login(self, user: User) -> None:
         self.logout_action.setEnabled(True)
-        if user.role == "admin":
+        if user.role.lower() == "admin":
             self.admin_panel.refresh()
             self.stack.setCurrentWidget(self.admin_panel)
         else:
@@ -1091,32 +1281,36 @@ class MainWindow(QMainWindow):
         self.gallery.update_cart_count(0)
         self.stack.setCurrentWidget(self.login)
 
-    def add_artwork_to_cart(self, art_id: int) -> None:
+    def add_artwork_to_cart(self, art_id: int, qty: int = 1) -> None:
+        art = self.db.artworks.get_artwork(art_id)
+        if not art:
+            return
         current_qty = self.cart.get(art_id, 0)
-        art = self.db.get_artwork(art_id)
-        if art and art[4] <= current_qty:
+        if art[4] < current_qty + qty:
             QMessageBox.information(self, "Stock", "No more stock available for this artwork.")
             return
-        self.cart[art_id] = current_qty + 1
+        self.cart[art_id] = current_qty + qty
         QMessageBox.information(self, "Added", "Artwork added to cart.")
         self.gallery.update_cart_count(sum(self.cart.values()))
 
     def show_cart(self) -> None:
-        dialog = CartDialog(self.db, self.cart, self)
+        dialog = CartDialog(self.db.artworks, self.cart, self)
         dialog.checkout_requested.connect(self.show_checkout)
         dialog.exec_()
         self.gallery.update_cart_count(sum(self.cart.values()))
 
     def show_checkout(self) -> None:
-        checkout = CheckoutDialog(self.db, self.cart, self)
+        checkout = CheckoutUI(self.db.orders, self.db.artworks, self.db.settings, self.cart, self)
         checkout.order_completed.connect(self._handle_order_complete)
         checkout.exec_()
 
     def _handle_order_complete(self, order_id: int) -> None:
-        owner_name, owner_phone, alt_phone = self.db.get_settings()
-        contact = ContactOwnerDialog(owner_name, owner_phone, alt_phone, self)
+        owner_name, owner_phone, alt_phone = self.db.settings.get_settings()
+        order, lines = self.db.orders.get_order_details(order_id)
+        item_summary = ", ".join([f"{t} x{q}" for t, q in lines])
+        self.notifications.push_new_order(order_id, order[1], order[2], order[3], item_summary)
+        contact = ContactDialogUI(owner_name, owner_phone, alt_phone, self)
         contact.exec_()
-        order, _ = self.db.get_order_details(order_id)
         confirmation = OrderConfirmationDialog(order[0], owner_phone, self)
         confirmation.exec_()
         self.cart.clear()
@@ -1135,3 +1329,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
