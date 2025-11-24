@@ -601,7 +601,10 @@ class LoginPage(QWidget):
         form.setLabelAlignment(Qt.AlignRight)
         form.setContentsMargins(6, 6, 6, 6)
         form.setSpacing(10)
-        form.setStyleSheet(
+
+        form_wrapper = QWidget()
+        form_wrapper.setLayout(form)
+        form_wrapper.setStyleSheet(
             "QLabel {"
             "  color: #1d1d1d;"
             "  font-weight: 600;"
@@ -624,7 +627,7 @@ class LoginPage(QWidget):
         self.password_input.setPlaceholderText("Enter your password")
         form.addRow("Email", self.email_input)
         form.addRow("Password", self.password_input)
-        card_layout.addLayout(form)
+        card_layout.addWidget(form_wrapper)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
