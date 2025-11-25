@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block header %}
+<header class="site-header admin">
+    <div class="logo">Settings</div>
+    <nav class="main-nav">
+        <a href="{{ url_for('admin_orders') }}">Orders</a>
+        <a href="{{ url_for('admin_artworks') }}">Artworks</a>
+        <a href="{{ url_for('admin_settings') }}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+</header>
+{% endblock %}
+{% block content %}
+<h1>Owner Profile</h1>
+<form method="post" class="admin-form">
+    <label>Owner Name</label>
+    <input type="text" name="owner_name" value="{{ settings['owner_name'] if settings else '' }}" required>
+    {% if errors.get('owner_name') %}<p class="error">{{ errors['owner_name'] }}</p>{% endif %}
+    <label>Phone</label>
+    <input type="text" name="phone" value="{{ settings['phone'] if settings else '' }}" required>
+    {% if errors.get('phone') %}<p class="error">{{ errors['phone'] }}</p>{% endif %}
+    <label>Alt Phone</label>
+    <input type="text" name="alt_phone" value="{{ settings['alt_phone'] if settings else '' }}">
+    <button type="submit" class="btn">Save Changes</button>
+</form>
+{% endblock %}
