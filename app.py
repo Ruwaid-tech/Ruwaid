@@ -23,11 +23,30 @@ app.secret_key = "super-secret-art-hub-key"
 
 def get_db():
     if "db" not in g:
+        ensure_db_initialized()
         conn = sqlite3.connect(DATABASE)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         g.db = conn
     return g.db
+
+
+def ensure_db_initialized():
+    needs_init = not os.path.exists(DATABASE)
+    if not needs_init:
+        try:
+            with sqlite3.connect(DATABASE) as conn:
+                cur = conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='artworks'"
+                )
+                needs_init = cur.fetchone() is None
+        except sqlite3.Error:
+            needs_init = True
+
+    if needs_init:
+        from db_init import init_db
+
+        init_db()
 
 
 @app.teardown_appcontext
