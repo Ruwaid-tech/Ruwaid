@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% set editing = artwork is not none %}
+{% block header %}
+<header class="site-header admin">
+    <div class="logo">{{ 'Edit Artwork' if editing else 'Add Artwork' }}</div>
+    <nav class="main-nav">
+        <a href="{{ url_for('admin_orders') }}">Orders</a>
+        <a href="{{ url_for('admin_artworks') }}">Artworks</a>
+        <a href="{{ url_for('admin_settings') }}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+</header>
+{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('admin_artworks') }}">← Back to Artworks</a>
+<h1>{{ 'Edit Artwork' if editing else 'Add Artwork' }}</h1>
+<form method="post" class="admin-form">
+    <label>Title</label>
+    <input type="text" name="title" value="{{ (artwork['title'] if artwork else '') }}" required>
+    {% if errors.get('title') %}<p class="error">{{ errors['title'] }}</p>{% endif %}
+    <label>Description</label>
+    <textarea name="description" required>{{ (artwork['description'] if artwork else '') }}</textarea>
+    {% if errors.get('description') %}<p class="error">{{ errors['description'] }}</p>{% endif %}
+    <label>Image URL</label>
+    <input type="text" name="image_url" value="{{ (artwork['image_url'] if artwork else '') }}">
+    <label>Category</label>
+    <input type="text" name="category" value="{{ (artwork['category'] if artwork else '') }}" required>
+    {% if errors.get('category') %}<p class="error">{{ errors['category'] }}</p>{% endif %}
+    <label>Price</label>
+    <input type="number" step="0.01" name="price" value="{{ (artwork['price'] if artwork else '') }}" required>
+    {% if errors.get('price') %}<p class="error">{{ errors['price'] }}</p>{% endif %}
+    <label>Stock</label>
+    <input type="number" name="stock" value="{{ (artwork['stock'] if artwork else '') }}" required>
+    {% if errors.get('stock') %}<p class="error">{{ errors['stock'] }}</p>{% endif %}
+    <button type="submit" class="btn">Save</button>
+    <a href="{{ url_for('admin_artworks') }}" class="btn secondary">Cancel</a>
+</form>
+{% endblock %}
