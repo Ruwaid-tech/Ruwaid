@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block header %}{% endblock %}
+{% block content %}
+<div class="auth-card">
+    <div class="auth-header">ART HUB – Create Account</div>
+    <form method="post" class="auth-form">
+        <label>Full Name</label>
+        <input type="text" name="full_name" required>
+        {% if errors.get('full_name') %}<p class="error">{{ errors['full_name'] }}</p>{% endif %}
+        <label>Username</label>
+        <input type="text" name="username" required>
+        {% if errors.get('username') %}<p class="error">{{ errors['username'] }}</p>{% endif %}
+        <label>Email</label>
+        <input type="email" name="email">
+        <label>Password</label>
+        <input type="password" name="password" required>
+        {% if errors.get('password') %}<p class="error">{{ errors['password'] }}</p>{% endif %}
+        <label>Confirm Password</label>
+        <input type="password" name="confirm" required>
+        {% if errors.get('confirm') %}<p class="error">{{ errors['confirm'] }}</p>{% endif %}
+        <button type="submit" class="btn">Create Account</button>
+    </form>
+    <div class="auth-links">
+        Already have an account? <a href="{{ url_for('login') }}">Login</a>
+    </div>
+</div>
+{% endblock %}
