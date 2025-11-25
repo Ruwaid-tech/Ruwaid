@@ -21,6 +21,16 @@ app = Flask(__name__)
 app.secret_key = "super-secret-art-hub-key"
 
 
+@app.before_request
+def require_login_first():
+    open_endpoints = {"login", "register", "static"}
+    if request.endpoint in open_endpoints or (request.endpoint or "").startswith("static"):
+        return
+    if session.get("user_id") is None:
+        next_url = request.path
+        return redirect(url_for("login", next=next_url))
+
+
 def get_db():
     if "db" not in g:
         ensure_db_initialized()
@@ -269,6 +279,7 @@ def register():
 def login():
     db = get_db()
     error = None
+    next_url = request.args.get("next") or url_for("home")
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
@@ -277,7 +288,7 @@ def login():
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["role"] = user["role"]
-            return redirect(url_for("admin_dashboard"))
+            return redirect(next_url)
         error = "Invalid credentials"
     return render_template("login.html", error=error)
 
