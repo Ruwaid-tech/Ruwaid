@@ -11,7 +11,10 @@
 </header>
 {% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('admin_orders') }}">← Back to Orders</a>
+<div class="flex-between">
+    <a class="back-link" href="{{ url_for('admin_orders') }}">← Back to Orders</a>
+    <a class="btn ghost" href="{{ url_for('home') }}">Back to Gallery</a>
+</div>
 <h1>Order {{ order['order_code'] }}</h1>
 <div class="order-info">
     <p><strong>Buyer:</strong> {{ order['buyer_name'] }}</p>

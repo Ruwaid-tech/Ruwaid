@@ -120,6 +120,13 @@ def home():
     )
 
 
+@app.route("/about")
+def about():
+    db = get_db()
+    settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
+    return render_template("about.html", settings=settings)
+
+
 @app.route("/artwork/<int:artwork_id>")
 def artwork_detail(artwork_id):
     db = get_db()
