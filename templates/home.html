@@ -1,53 +1,49 @@
 {% extends 'base.html' %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
 {% block content %}
-<section class="welcome-hero">
-    <div class="hero-left">
-        <p class="eyebrow">A colourful welcome to Art Hub</p>
-        <h1>Vibrant canvases and portraits to brighten your space.</h1>
-        <p class="lede">Step into a curated studio of lively hues, textured brushwork, and soulful stories. Explore featured drops below, then jump to the full gallery.</p>
-        <div class="cta-row">
-            <a class="btn" href="{{ url_for('gallery') }}">Visit Gallery</a>
-            <a class="btn secondary" href="{{ url_for('cart_view') }}">Cart ({{ cart_count }})</a>
-            {% if current_role == 'ADMIN' %}
-            <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
-            {% endif %}
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <p class="eyebrow">Welcome to</p>
+        <h1>Art Hub</h1>
+        <p class="sub">A vibrant space for original paintings, sketches, and limited editions by the artist.</p>
+        <div class="hero-actions">
+            <a class="btn primary" href="{{ url_for('login', next=url_for('gallery')) }}">View Gallery</a>
+            <a class="btn ghost" href="{{ url_for('about') }}">About</a>
+            <a class="btn outline" href="{{ url_for('login') }}">Admin Login</a>
         </div>
     </div>
-    <div class="hero-right">
-        <div class="burst"></div>
-        <div class="stacked-card"><span>Palette</span></div>
-        <div class="stacked-card highlight"><span>Canvas</span></div>
-        <div class="stacked-card"><span>Portrait</span></div>
+    <div class="floating-cards">
+        {% for art in featured %}
+        <div class="float-card">
+            <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
+            <div class="float-info">
+                <p class="title">{{ art['title'] }}</p>
+                <p class="price">{{ format_currency(art['price']) }}</p>
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </section>
-<section class="welcome-panels">
-    <div class="panel-card">
-        <h3>Featured works</h3>
-        <div class="featured-grid">
-            {% for art in featured %}
-            <div class="featured-item">
-                <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
-                <div>
-                    <p class="mini">{{ art['category'] }}</p>
-                    <p class="strong">{{ art['title'] }}</p>
-                    <p class="price">{{ format_currency(art['price']) }}</p>
-                </div>
-            </div>
-            {% else %}
-            <p>No featured artworks yet.</p>
-            {% endfor %}
-        </div>
-        <a class="btn ghost" href="{{ url_for('gallery') }}">Explore full gallery</a>
+<section class="featured-strip">
+    <div class="strip-head">
+        <h2>Featured Artworks</h2>
+        <a href="{{ url_for('login', next=url_for('gallery')) }}" class="link">View Gallery →</a>
     </div>
-    <div class="panel-card gradient">
-        <h3>Meet the artist</h3>
-        <p>{{ settings['about_content'] if settings and settings['about_content'] else 'Discover the story behind each brushstroke and commission bespoke pieces directly.' }}</p>
-        <p><strong>{{ settings['owner_name'] if settings else '' }}</strong></p>
-        {% if settings %}
-        <p>Phone: {{ settings['phone'] }}</p>
-        {% if settings['alt_phone'] %}<p>Alt: {{ settings['alt_phone'] }}</p>{% endif %}
-        {% endif %}
-        <a class="btn" href="{{ url_for('about') }}">About page</a>
+    <div class="strip-grid">
+        {% for art in featured %}
+        <div class="strip-card">
+            <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
+            <div>
+                <h3>{{ art['title'] }}</h3>
+                <p class="price">{{ format_currency(art['price']) }}</p>
+            </div>
+        </div>
+        {% else %}
+        <p>No artworks yet.</p>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}

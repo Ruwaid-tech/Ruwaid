@@ -1,41 +1,40 @@
 {% extends 'base.html' %}
-{% block header %}
-<header class="site-header admin">
-    <div class="logo">Artworks</div>
-    <nav class="main-nav">
-        <a href="{{ url_for('admin_orders') }}">Orders</a>
-        <a href="{{ url_for('admin_artworks') }}">Artworks</a>
-        <a href="{{ url_for('admin_settings') }}">Settings</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
-    </nav>
-</header>
-{% endblock %}
 {% block content %}
-<div class="page-heading">
-    <h1>Artworks</h1>
-    <div class="cta-row">
-        <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
-        <a class="btn" href="{{ url_for('admin_artwork_new') }}">Add Artwork</a>
-    </div>
+<div class="admin-nav">
+    <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin_orders') }}">Orders</a>
+    <a href="{{ url_for('admin_artworks') }}">Artworks</a>
+    <a href="{{ url_for('admin_settings') }}">Settings</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
 </div>
-<table class="table">
-    <tr><th>ID</th><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr>
-    {% for art in artworks %}
-    <tr>
-        <td>{{ art['id'] }}</td>
-        <td>{{ art['title'] }}</td>
-        <td>{{ art['category'] }}</td>
-        <td>{{ format_currency(art['price']) }}</td>
-        <td>{{ art['stock'] }}</td>
-        <td>
-            <a class="btn small" href="{{ url_for('admin_artwork_edit', artwork_id=art['id']) }}">Edit</a>
-            <form method="post" action="{{ url_for('admin_artwork_delete', artwork_id=art['id']) }}" class="inline delete-form">
-                <button type="submit" class="btn small secondary">Delete</button>
-            </form>
-        </td>
-    </tr>
-    {% else %}
-    <tr><td colspan="6">No artworks found.</td></tr>
-    {% endfor %}
-</table>
+<section class="panel">
+    <div class="panel-header">
+        <h1>Artworks</h1>
+        <div class="actions">
+            <a class="btn" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+            <a class="btn primary" href="{{ url_for('admin_artwork_new') }}">Add Artwork</a>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead><tr><th>Title</th><th>Category</th><th>Price</th><th>Stock</th><th></th></tr></thead>
+        <tbody>
+            {% for art in artworks %}
+            <tr>
+                <td>{{ art['title'] }}</td>
+                <td>{{ art['category'] }}</td>
+                <td>{{ format_currency(art['price']) }}</td>
+                <td>{{ art['stock'] }}</td>
+                <td>
+                    <a class="btn" href="{{ url_for('admin_artwork_edit', artwork_id=art['id']) }}">Edit</a>
+                    <form class="inline delete-form" method="post" action="{{ url_for('admin_artwork_delete', artwork_id=art['id']) }}">
+                        <button class="btn ghost" type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">No artworks yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
 {% endblock %}

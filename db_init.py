@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "arthub.db")
 
-
 sample_artworks = [
     (
         "Portrait Muse",
@@ -31,14 +30,6 @@ sample_artworks = [
         "Seascape",
         3100.0,
         5,
-    ),
-    (
-        "Midnight Lines",
-        "Minimalist ink sketch of moonlit city silhouettes.",
-        "https://images.unsplash.com/photo-1523419400524-2230b574eafc?auto=format&fit=crop&w=800&q=80",
-        "Sketch",
-        1900.0,
-        4,
     ),
 ]
 
@@ -99,7 +90,7 @@ def init_db():
             owner_name TEXT NOT NULL,
             phone TEXT NOT NULL,
             alt_phone TEXT,
-            about_content TEXT
+            about_content TEXT NOT NULL
         );
         """
     )
@@ -126,9 +117,9 @@ def init_db():
         "INSERT INTO settings (owner_name, phone, alt_phone, about_content) VALUES (?, ?, ?, ?)",
         (
             "Ms. Priya Sharma",
-            "+91-98XXXXXX5",
-            "+91-80XXXXXX1",
-            "Art Hub showcases colourful portraits, tranquil seascapes, and bespoke commissions crafted with care.",
+            "+49-123456789",
+            "+49-987654321",
+            "Art Hub presents a curated selection of portraits, coastal scenes, and bespoke commissions crafted with care and vibrant detail.",
         ),
     )
 
