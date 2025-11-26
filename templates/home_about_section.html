@@ -1,0 +1,5 @@
+<div class="about-snippet">
+    <h2>About the Artist</h2>
+    <p>{{ (settings['about_content'] if settings else 'Expressive works crafted with passion.') | replace('\n','<br>') | safe }}</p>
+    <a class="btn ghost" href="{{ url_for('about') }}">Learn More</a>
+</div>

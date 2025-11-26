@@ -3,13 +3,12 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ART HUB</title>
+    <title>Art Hub</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    {% block extra_head %}{% endblock %}
     <script defer src="{{ url_for('static', filename='js/main.js') }}"></script>
 </head>
 <body>
-<button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle theme"></button>
-{% block header %}
 <header class="site-header">
     <div class="logo">ART HUB</div>
     <nav class="main-nav">
@@ -17,16 +16,15 @@
         <a href="{{ url_for('gallery') }}">Gallery</a>
         <a href="{{ url_for('about') }}">About</a>
         {% if current_role == 'ADMIN' %}
-        <a href="{{ url_for('admin_dashboard') }}">Admin</a>
+            <a href="{{ url_for('admin_dashboard') }}">Admin</a>
         {% else %}
-        <a href="{{ url_for('admin_login') }}">Admin Login</a>
+            <a href="{{ url_for('login') }}">Admin Login</a>
         {% endif %}
     </nav>
     <div class="cart-link">
         <a href="{{ url_for('cart_view') }}">Cart ({{ cart_count }})</a>
     </div>
 </header>
-{% endblock %}
 <main class="content">
     {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -39,7 +37,7 @@
     {% endwith %}
     {% block content %}{% endblock %}
 </main>
-<footer class="footer" id="about">
+<footer class="footer">
     <p>Art Hub &copy; {{ now().year if false else '' }}</p>
 </footer>
 </body>

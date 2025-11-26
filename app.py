@@ -25,54 +25,19 @@ app.secret_key = "super-secret-art-hub-key"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-@app.before_request
-def enforce_authentication():
-    endpoint = request.endpoint or ""
-    public_endpoints = {"login", "register", "admin_login", "static"}
-
-    # Require a login before accessing any page besides auth/static
-    if endpoint.split(".")[0] not in public_endpoints and session.get("user_id") is None:
-        return redirect(url_for("login", next=request.path))
-
-    # Extra guard for admin-only endpoints
-    if endpoint.startswith("admin_") and endpoint not in {"admin_login"}:
-        if session.get("role") != "ADMIN":
-            session.clear()
-            flash("Admin access only. Please sign in with administrator credentials.")
-            return redirect(url_for("admin_login", next=request.path))
-
-
+# ---------- Database helpers ----------
 def get_db():
     if "db" not in g:
-        ensure_db_initialized()
+        if not os.path.exists(DATABASE):
+            from db_init import init_db
+
+            init_db()
         ensure_upload_folder()
         conn = sqlite3.connect(DATABASE)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
         g.db = conn
     return g.db
-
-
-def ensure_db_initialized():
-    needs_init = not os.path.exists(DATABASE)
-    if not needs_init:
-        try:
-            with sqlite3.connect(DATABASE) as conn:
-                cur = conn.execute(
-                    "SELECT name FROM sqlite_master WHERE type='table' AND name='artworks'"
-                )
-                needs_init = cur.fetchone() is None
-        except sqlite3.Error:
-            needs_init = True
-
-    if needs_init:
-        from db_init import init_db
-
-        init_db()
-
-
-def ensure_upload_folder():
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
 @app.teardown_appcontext
@@ -82,15 +47,17 @@ def close_db(exception):
         db.close()
 
 
+def ensure_upload_folder():
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+
+# ---------- Utilities ----------
 def login_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
         if session.get("user_id") is None or session.get("role") != "ADMIN":
             flash("Admin access required.")
-            session.pop("user_id", None)
-            session.pop("username", None)
-            session.pop("role", None)
-            return redirect(url_for("admin_login", next=request.path))
+            return redirect(url_for("login", next=request.path))
         return view(**kwargs)
 
     return wrapped_view
@@ -104,6 +71,14 @@ def cart_count():
     return sum(get_cart().values())
 
 
+def format_currency(value):
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        amount = 0.0
+    return f"€ {amount:,.2f}"
+
+
 @app.context_processor
 def inject_globals():
     return {
@@ -113,31 +88,22 @@ def inject_globals():
     }
 
 
-def format_currency(value):
-    try:
-        amount = float(value)
-    except (TypeError, ValueError):
-        return "€ 0,00"
-    formatted = f"{amount:,.2f}"
-    formatted = formatted.replace(",", " ").replace(".", ",")
-    return f"€ {formatted}"
-
-
+# ---------- Public routes ----------
 @app.route("/")
-def index():
-    if not session.get("user_id"):
-        return redirect(url_for("login", next=url_for("home")))
-    return redirect(url_for("home"))
-
-
-@app.route("/home")
 def home():
-    if not session.get("user_id"):
-        return redirect(url_for("login", next=url_for("home")))
     db = get_db()
-    featured = db.execute("SELECT * FROM artworks ORDER BY created_at DESC LIMIT 3").fetchall()
+    featured = db.execute(
+        "SELECT * FROM artworks ORDER BY created_at DESC LIMIT 3"
+    ).fetchall()
     settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
     return render_template("home.html", featured=featured, settings=settings)
+
+
+@app.route("/about")
+def about():
+    db = get_db()
+    settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
+    return render_template("about.html", settings=settings)
 
 
 @app.route("/gallery")
@@ -166,15 +132,13 @@ def gallery():
     artworks = db.execute(query, params).fetchall()
     categories = [row[0] for row in db.execute("SELECT DISTINCT category FROM artworks").fetchall()]
     return render_template(
-        "gallery.html", artworks=artworks, categories=categories, search=search, category=category, sort=sort
+        "gallery.html",
+        artworks=artworks,
+        categories=categories,
+        search=search,
+        category=category,
+        sort=sort,
     )
-
-
-@app.route("/about")
-def about():
-    db = get_db()
-    settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
-    return render_template("about.html", settings=settings)
 
 
 @app.route("/artwork/<int:artwork_id>")
@@ -182,7 +146,8 @@ def artwork_detail(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT * FROM artworks WHERE id=?", (artwork_id,)).fetchone()
     if not artwork:
-        return redirect(url_for("home"))
+        flash("Artwork not found.")
+        return redirect(url_for("gallery"))
     return render_template("artwork_detail.html", artwork=artwork)
 
 
@@ -195,12 +160,14 @@ def cart_view():
     total = 0
     if artwork_ids:
         placeholders = ",".join(["?"] * len(artwork_ids))
-        rows = db.execute(f"SELECT * FROM artworks WHERE id IN ({placeholders})", artwork_ids).fetchall()
+        rows = db.execute(
+            f"SELECT * FROM artworks WHERE id IN ({placeholders})", artwork_ids
+        ).fetchall()
         for row in rows:
             qty = int(cart.get(str(row["id"]), 0))
             line_total = qty * row["price"]
-            items.append({"artwork": row, "qty": qty, "line_total": line_total})
             total += line_total
+            items.append({"artwork": row, "qty": qty, "line_total": line_total})
     errors = session.pop("form_errors", {})
     form_data = session.pop("form_data", {})
     return render_template("cart.html", items=items, total=total, errors=errors, form_data=form_data)
@@ -212,10 +179,12 @@ def cart_add(artwork_id):
     artwork = db.execute("SELECT stock FROM artworks WHERE id=?", (artwork_id,)).fetchone()
     if not artwork or artwork["stock"] <= 0:
         flash("Item out of stock.")
-        return redirect(request.referrer or url_for("home"))
+        return redirect(request.referrer or url_for("gallery"))
     qty = int(request.form.get("quantity", 1))
+    if qty < 1:
+        qty = 1
     cart = get_cart()
-    cart[str(artwork_id)] = cart.get(str(artwork_id), 0) + max(1, qty)
+    cart[str(artwork_id)] = cart.get(str(artwork_id), 0) + qty
     session.modified = True
     return redirect(request.referrer or url_for("cart_view"))
 
@@ -250,7 +219,9 @@ def checkout():
     items = []
     if artwork_ids:
         placeholders = ",".join(["?"] * len(artwork_ids))
-        rows = db.execute(f"SELECT * FROM artworks WHERE id IN ({placeholders})", artwork_ids).fetchall()
+        rows = db.execute(
+            f"SELECT * FROM artworks WHERE id IN ({placeholders})", artwork_ids
+        ).fetchall()
         for row in rows:
             qty = int(cart.get(str(row["id"]), 0))
             if qty > row["stock"]:
@@ -293,10 +264,12 @@ def order_confirm(order_id):
     order = db.execute("SELECT * FROM orders WHERE id=?", (order_id,)).fetchone()
     settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
     if not order:
-        return redirect(url_for("home"))
+        flash("Order not found.")
+        return redirect(url_for("gallery"))
     return render_template("order_confirm.html", order=order, settings=settings)
 
 
+# ---------- Auth routes ----------
 @app.route("/register", methods=["GET", "POST"])
 def register():
     db = get_db()
@@ -323,55 +296,44 @@ def register():
         if not errors:
             db.execute(
                 "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-                (full_name, username, email, generate_password_hash(password), "USER"),
+                (full_name, username, email, generate_password_hash(password), "ADMIN"),
             )
             db.commit()
-            flash("Account created. Please login.")
+            flash("Admin account created. Please login.")
             return redirect(url_for("login"))
 
     return render_template("register.html", errors=errors)
 
 
-def handle_login(admin_mode: bool):
+@app.route("/login", methods=["GET", "POST"])
+def login():
     db = get_db()
     error = None
-    default_next = url_for("admin_dashboard") if admin_mode else url_for("home")
-    next_url = request.args.get("next") or request.form.get("next") or default_next
+    next_url = request.args.get("next") or request.form.get("next") or url_for("admin_dashboard")
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         if user and check_password_hash(user["password_hash"], password):
-            if admin_mode and user["role"] != "ADMIN":
-                error = "Admin credentials required."
+            if user["role"] != "ADMIN":
+                error = "Admin access only."
             else:
                 session["user_id"] = user["id"]
                 session["username"] = user["username"]
                 session["role"] = user["role"]
-                if user["role"] != "ADMIN" and next_url.startswith("/admin"):
-                    next_url = url_for("home")
                 return redirect(next_url)
         else:
             error = "Invalid credentials"
-    return render_template("login.html", error=error, admin_mode=admin_mode, next_url=next_url)
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    return handle_login(admin_mode=False)
-
-
-@app.route("/admin/login", methods=["GET", "POST"])
-def admin_login():
-    return handle_login(admin_mode=True)
+    return render_template("login.html", error=error, next_url=next_url)
 
 
 @app.route("/logout")
 def logout():
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for("home"))
 
 
+# ---------- Admin routes ----------
 @app.route("/admin")
 @login_required
 def admin_dashboard():
@@ -407,6 +369,7 @@ def admin_order_detail(order_id):
         db.commit()
     order = db.execute("SELECT * FROM orders WHERE id=?", (order_id,)).fetchone()
     if not order:
+        flash("Order not found.")
         return redirect(url_for("admin_orders"))
     lines = db.execute(
         """
@@ -460,6 +423,7 @@ def admin_artwork_edit(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT * FROM artworks WHERE id=?", (artwork_id,)).fetchone()
     if not artwork:
+        flash("Artwork not found.")
         return redirect(url_for("admin_artworks"))
     errors = {}
     if request.method == "POST":
@@ -510,6 +474,8 @@ def admin_settings():
             errors["owner_name"] = "Owner name required"
         if not phone:
             errors["phone"] = "Phone required"
+        if not about_content:
+            errors["about_content"] = "About content required"
         if not errors:
             if settings:
                 db.execute(
@@ -527,15 +493,17 @@ def admin_settings():
     return render_template("admin_settings.html", settings=settings, errors=errors)
 
 
+# ---------- Helpers ----------
 def validate_artwork_form():
     errors = {}
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
-    image_url = request.form.get("image_url", "").strip()
     category = request.form.get("category", "").strip()
     price = request.form.get("price", "0").strip()
     stock = request.form.get("stock", "0").strip()
     upload = request.files.get("image_file")
+    existing_image = request.form.get("existing_image")
+
     try:
         price_val = float(price)
     except ValueError:
@@ -563,7 +531,8 @@ def validate_artwork_form():
         else:
             errors["image_file"] = "Unsupported file type"
 
-    image_final = saved_path or image_url or request.form.get("existing_image") or "https://via.placeholder.com/300x200?text=Art+Hub"
+    image_final = saved_path or existing_image or request.form.get("image_url", "") or "https://via.placeholder.com/600x400?text=Art+Hub"
+
     data = {
         "title": title,
         "description": description,

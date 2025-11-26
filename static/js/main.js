@@ -3,7 +3,9 @@ document.addEventListener('click', (e) => {
         const id = e.target.getAttribute('data-target');
         const input = document.getElementById(id);
         if (input) {
-            input.type = input.type === 'password' ? 'text' : 'password';
+            const newType = input.type === 'password' ? 'text' : 'password';
+            input.type = newType;
+            e.target.textContent = newType === 'password' ? 'Show' : 'Hide';
         }
     }
     if (e.target.closest('.delete-form')) {
@@ -12,26 +14,3 @@ document.addEventListener('click', (e) => {
         }
     }
 });
-
-(function themeSwitcher() {
-    const btn = document.getElementById('theme-toggle');
-    const body = document.body;
-    const stored = localStorage.getItem('arthub-theme');
-    if (stored === 'dark') {
-        body.classList.add('dark-mode');
-    }
-    const setLabel = () => {
-        if (btn) {
-            btn.textContent = body.classList.contains('dark-mode') ? '☀️ Light' : '🌙 Dark';
-        }
-    };
-    setLabel();
-    if (btn) {
-        btn.addEventListener('click', () => {
-            body.classList.toggle('dark-mode');
-            const mode = body.classList.contains('dark-mode') ? 'dark' : 'light';
-            localStorage.setItem('arthub-theme', mode);
-            setLabel();
-        });
-    }
-})();

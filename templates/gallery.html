@@ -1,54 +1,48 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="filter-row" id="gallery">
+<section class="panel">
     <div class="panel-header">
         <div>
             <h1>Gallery</h1>
-            <p class="lead">Browse available originals and prints.</p>
+            <p>Browse available artworks</p>
         </div>
-        <div class="cta-row">
-            <a class="btn ghost" href="{{ url_for('home') }}">← Back Home</a>
-            <a class="btn" href="{{ url_for('cart_view') }}">Cart ({{ cart_count }})</a>
-        </div>
+        <div class="cart-summary">Cart: {{ cart_count }} item(s)</div>
     </div>
-    <form method="get" class="filter-form">
-        <input type="text" name="search" placeholder="Search artworks" value="{{ search }}">
+    <form class="filters" method="get">
+        <input type="text" name="search" placeholder="Search title or description" value="{{ search }}">
         <select name="category">
-            <option value="All" {% if category=='All' %}selected{% endif %}>All</option>
+            <option value="All" {% if category=='All' %}selected{% endif %}>All Categories</option>
             {% for cat in categories %}
             <option value="{{ cat }}" {% if category==cat %}selected{% endif %}>{{ cat }}</option>
             {% endfor %}
         </select>
         <select name="sort">
-            <option value="">Sort</option>
+            <option value="" {% if not sort %}selected{% endif %}>Newest</option>
             <option value="asc" {% if sort=='asc' %}selected{% endif %}>Price ↑</option>
             <option value="desc" {% if sort=='desc' %}selected{% endif %}>Price ↓</option>
         </select>
-        <button type="submit">Apply</button>
+        <button class="btn" type="submit">Apply</button>
     </form>
-</section>
-<section class="gallery grid-gap">
-    {% for art in artworks %}
-    <div class="card">
-        <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
-        <div class="card-body">
-            <h3>{{ art['title'] }}</h3>
-            <p class="price">{{ format_currency(art['price']) }}</p>
-            <p class="desc">{{ art['description'] }}</p>
+    <div class="card-grid">
+        {% for art in artworks %}
+        <div class="card">
+            <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
+            <div class="card-body">
+                <h3>{{ art['title'] }}</h3>
+                <p class="desc">{{ art['description'][:120] }}{% if art['description']|length > 120 %}...{% endif %}</p>
+                <p class="price">{{ format_currency(art['price']) }}</p>
+            </div>
             <div class="card-actions">
-                <a class="btn" href="{{ url_for('artwork_detail', artwork_id=art['id']) }}">View Details</a>
+                <a class="btn ghost" href="{{ url_for('artwork_detail', artwork_id=art['id']) }}">View Details</a>
                 <form method="post" action="{{ url_for('cart_add', artwork_id=art['id']) }}">
-                    <button type="submit" class="btn secondary">Add</button>
+                    <input type="hidden" name="quantity" value="1">
+                    <button class="btn primary" type="submit">Add</button>
                 </form>
             </div>
         </div>
+        {% else %}
+        <p>No artworks found.</p>
+        {% endfor %}
     </div>
-    {% else %}
-    <p>No artworks found.</p>
-    {% endfor %}
 </section>
-<div class="cta-row">
-    <a class="btn" href="{{ url_for('cart_view') }}">Cart</a>
-    <a class="btn secondary" href="{{ url_for('cart_view') }}">Checkout</a>
-</div>
 {% endblock %}

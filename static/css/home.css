@@ -1,0 +1,37 @@
+body { background: radial-gradient(circle at 20% 20%, #ffe4ec, #f0f4ff 40%, #f7f8fb); }
+.hero {
+    position: relative;
+    padding: 4rem 2rem 6rem;
+    overflow: hidden;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(30,136,229,0.08), rgba(240,98,146,0.12));
+}
+.hero-overlay { position: absolute; inset: 0; background: radial-gradient(circle at 80% 20%, rgba(240,98,146,0.35), transparent 40%); pointer-events: none; }
+.hero-content { position: relative; max-width: 520px; }
+.hero h1 { font-size: 3rem; margin: 0.3rem 0; }
+.hero .sub { color: #374151; font-size: 1.1rem; line-height: 1.6; }
+.eyebrow { text-transform: uppercase; letter-spacing: 3px; color: #1e88e5; font-weight: 800; }
+.hero-actions { display: flex; gap: 0.8rem; margin-top: 1.2rem; flex-wrap: wrap; }
+
+.floating-cards { position: absolute; right: 2rem; top: 2rem; display: grid; gap: 1rem; animation: float 10s ease-in-out infinite alternate; }
+.float-card { background: white; border-radius: 14px; padding: 0.6rem; width: 200px; box-shadow: 0 12px 30px rgba(0,0,0,0.12); }
+.float-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; }
+.float-info { display: flex; justify-content: space-between; align-items: center; }
+.float-info .title { font-weight: 700; }
+.float-info .price { color: #1e88e5; font-weight: 800; }
+
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(-20px); } }
+
+.featured-strip { margin-top: 2rem; background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+.strip-head { display: flex; justify-content: space-between; align-items: center; }
+.strip-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 1rem; margin-top: 1rem; }
+.strip-card { display: flex; gap: 0.75rem; align-items: center; background: #f9fafb; padding: 0.8rem; border-radius: 10px; }
+.strip-card img { width: 90px; height: 90px; object-fit: cover; border-radius: 10px; }
+.strip-card h3 { margin: 0; }
+.strip-card .price { color: #1e88e5; font-weight: 800; }
+.link { color: #1e88e5; text-decoration: none; font-weight: 700; }
+
+@media (max-width: 960px) {
+    .floating-cards { position: static; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); animation: none; margin-top: 1.5rem; }
+    .hero { padding-bottom: 3rem; }
+}
