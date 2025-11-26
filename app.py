@@ -124,6 +124,13 @@ def format_currency(value):
 
 
 @app.route("/")
+def index():
+    if not session.get("user_id"):
+        return redirect(url_for("login", next=url_for("home")))
+    return redirect(url_for("home"))
+
+
+@app.route("/home")
 def home():
     if not session.get("user_id"):
         return redirect(url_for("login", next=url_for("home")))
