@@ -19,7 +19,7 @@
         {% if current_role == 'ADMIN' %}
         <a href="{{ url_for('admin_dashboard') }}">Admin</a>
         {% else %}
-        <a href="{{ url_for('login') }}">Admin Login</a>
+        <a href="{{ url_for('admin_login') }}">Admin Login</a>
         {% endif %}
     </nav>
     <div class="cart-link">

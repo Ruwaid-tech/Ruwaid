@@ -26,13 +26,12 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 @app.before_request
-def require_login_first():
-    open_endpoints = {"login", "register", "static"}
-    if request.endpoint in open_endpoints or (request.endpoint or "").startswith("static"):
-        return
-    if session.get("user_id") is None:
-        next_url = request.path
-        return redirect(url_for("login", next=next_url))
+def guard_admin_routes():
+    endpoint = request.endpoint or ""
+    if endpoint.startswith("admin_") and endpoint not in {"admin_login"}:
+        if session.get("role") != "ADMIN":
+            flash("Admin access only. Please sign in with administrator credentials.")
+            return redirect(url_for("admin_login", next=request.path))
 
 
 def get_db():
@@ -79,7 +78,11 @@ def login_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
         if session.get("user_id") is None or session.get("role") != "ADMIN":
-            return redirect(url_for("login"))
+            flash("Admin access required.")
+            session.pop("user_id", None)
+            session.pop("username", None)
+            session.pop("role", None)
+            return redirect(url_for("admin_login", next=request.path))
         return view(**kwargs)
 
     return wrapped_view
@@ -312,22 +315,36 @@ def register():
     return render_template("register.html", errors=errors)
 
 
+@app.route("/admin/login")
+def admin_login():
+    next_url = request.args.get("next") or url_for("admin_dashboard")
+    return redirect(url_for("login", admin=1, next=next_url))
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     db = get_db()
     error = None
-    next_url = request.args.get("next") or url_for("home")
+    admin_mode = request.args.get("admin") == "1" or request.form.get("admin") == "1"
+    default_next = url_for("admin_dashboard") if admin_mode else url_for("home")
+    next_url = request.args.get("next") or request.form.get("next") or default_next
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         if user and check_password_hash(user["password_hash"], password):
-            session["user_id"] = user["id"]
-            session["username"] = user["username"]
-            session["role"] = user["role"]
-            return redirect(next_url)
-        error = "Invalid credentials"
-    return render_template("login.html", error=error)
+            if admin_mode and user["role"] != "ADMIN":
+                error = "Admin credentials required."
+            else:
+                session["user_id"] = user["id"]
+                session["username"] = user["username"]
+                session["role"] = user["role"]
+                if user["role"] != "ADMIN" and next_url.startswith("/admin"):
+                    next_url = url_for("home")
+                return redirect(next_url)
+        else:
+            error = "Invalid credentials"
+    return render_template("login.html", error=error, admin_mode=admin_mode, next_url=next_url)
 
 
 @app.route("/logout")
