@@ -26,10 +26,18 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 @app.before_request
-def guard_admin_routes():
+def enforce_authentication():
     endpoint = request.endpoint or ""
+    public_endpoints = {"login", "register", "admin_login", "static"}
+
+    # Require a login before accessing any page besides auth/static
+    if endpoint.split(".")[0] not in public_endpoints and session.get("user_id") is None:
+        return redirect(url_for("login", next=request.path))
+
+    # Extra guard for admin-only endpoints
     if endpoint.startswith("admin_") and endpoint not in {"admin_login"}:
         if session.get("role") != "ADMIN":
+            session.clear()
             flash("Admin access only. Please sign in with administrator credentials.")
             return redirect(url_for("admin_login", next=request.path))
 
