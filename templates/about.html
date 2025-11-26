@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+    <h1>About Art Hub</h1>
+    <p class="lead">Discover curated artworks crafted with passion. Browse portraits, landscapes, and abstracts, then place an easy cash-on-delivery order.</p>
+    <div class="about-grid">
+        <div class="about-card">
+            <h2>Our Story</h2>
+            <p>Art Hub is a cozy corner for bespoke pieces and limited-run prints. Every work is catalogued with clear details so you know exactly what you are getting.</p>
+        </div>
+        <div class="about-card">
+            <h2>Contact the Artist</h2>
+            {% if settings %}
+            <p><strong>{{ settings['owner_name'] }}</strong></p>
+            <p>Phone: {{ settings['phone'] }}</p>
+            {% if settings['alt_phone'] %}<p>Alt: {{ settings['alt_phone'] }}</p>{% endif %}
+            {% else %}
+            <p>Reach out to the artist for commissions and collaborations.</p>
+            {% endif %}
+        </div>
+        <div class="about-card">
+            <h2>Visit the Gallery</h2>
+            <p>Return to the gallery to explore all available artworks, filter by category, and view detailed snapshots.</p>
+            <a class="btn" href="{{ url_for('home') }}">Back to Gallery</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
