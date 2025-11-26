@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="confirmation">
+    <div class="banner">☑ ORDER PLACED</div>
+    <p>Thank you, your order has been recorded.</p>
+    <div class="order-summary">
+        <p><strong>Order ID:</strong> {{ order['order_code'] }}</p>
+        <p><strong>Status:</strong> {{ order['status'] }}</p>
+    </div>
+    <div class="contact-box">
+        <p>To finalise your order, please contact the artist:</p>
+        <p><strong>Owner:</strong> {{ settings['owner_name'] if settings else '' }}</p>
+        <p><strong>Phone:</strong> {{ settings['phone'] if settings else '' }}</p>
+    </div>
+    <a class="btn" href="{{ url_for('gallery') }}">Back to Gallery</a>
+</div>
+{% endblock %}
