@@ -2,8 +2,9 @@
 {% block content %}
 <section class="auth">
     <div class="auth-card">
-        <h1>Admin Login</h1>
+        <h1>Login Required</h1>
         {% if error %}<p class="error">{{ error }}</p>{% endif %}
+        <p class="muted">Access to the gallery and admin is restricted. Use the provided admin credentials.</p>
         <form method="post">
             <input type="hidden" name="next" value="{{ next_url }}">
             <label>Username</label>
@@ -14,7 +15,7 @@
                 <button type="button" class="toggle" data-target="password">Show</button>
             </div>
             <button class="btn primary" type="submit">Login</button>
-            <p class="muted">No account? <a href="{{ url_for('register') }}">Create admin account</a></p>
+            <p class="muted">Default credentials: <strong>admin</strong> / <strong>admin123</strong></p>
         </form>
     </div>
 </section>

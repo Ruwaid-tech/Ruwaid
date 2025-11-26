@@ -63,6 +63,17 @@ def login_required(view):
     return wrapped_view
 
 
+def user_login_required(view):
+    @wraps(view)
+    def wrapped_view(**kwargs):
+        if session.get("user_id") is None:
+            flash("Please login to continue.")
+            return redirect(url_for("login", next=request.path))
+        return view(**kwargs)
+
+    return wrapped_view
+
+
 def get_cart():
     return session.setdefault("cart", {})
 
@@ -107,6 +118,7 @@ def about():
 
 
 @app.route("/gallery")
+@user_login_required
 def gallery():
     db = get_db()
     search = request.args.get("search", "").strip()
@@ -142,6 +154,7 @@ def gallery():
 
 
 @app.route("/artwork/<int:artwork_id>")
+@user_login_required
 def artwork_detail(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT * FROM artworks WHERE id=?", (artwork_id,)).fetchone()
@@ -152,6 +165,7 @@ def artwork_detail(artwork_id):
 
 
 @app.route("/cart")
+@user_login_required
 def cart_view():
     db = get_db()
     cart = get_cart()
@@ -174,6 +188,7 @@ def cart_view():
 
 
 @app.route("/cart/add/<int:artwork_id>", methods=["POST"])
+@user_login_required
 def cart_add(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT stock FROM artworks WHERE id=?", (artwork_id,)).fetchone()
@@ -190,6 +205,7 @@ def cart_add(artwork_id):
 
 
 @app.route("/cart/remove/<int:artwork_id>", methods=["POST"])
+@user_login_required
 def cart_remove(artwork_id):
     cart = get_cart()
     cart.pop(str(artwork_id), None)
@@ -198,6 +214,7 @@ def cart_remove(artwork_id):
 
 
 @app.route("/checkout", methods=["POST"])
+@user_login_required
 def checkout():
     db = get_db()
     cart = get_cart()
@@ -259,6 +276,7 @@ def checkout():
 
 
 @app.route("/order/confirm/<int:order_id>")
+@user_login_required
 def order_confirm(order_id):
     db = get_db()
     order = db.execute("SELECT * FROM orders WHERE id=?", (order_id,)).fetchone()
@@ -272,44 +290,15 @@ def order_confirm(order_id):
 # ---------- Auth routes ----------
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    db = get_db()
-    errors = {}
-    if request.method == "POST":
-        full_name = request.form.get("full_name", "").strip()
-        username = request.form.get("username", "").strip()
-        email = request.form.get("email", "").strip()
-        password = request.form.get("password", "")
-        confirm = request.form.get("confirm", "")
-
-        if not full_name:
-            errors["full_name"] = "Full name required"
-        if not username:
-            errors["username"] = "Username required"
-        if not password:
-            errors["password"] = "Password required"
-        if password != confirm:
-            errors["confirm"] = "Passwords do not match"
-        exists = db.execute("SELECT 1 FROM users WHERE username=?", (username,)).fetchone()
-        if exists:
-            errors["username"] = "Username already exists"
-
-        if not errors:
-            db.execute(
-                "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-                (full_name, username, email, generate_password_hash(password), "ADMIN"),
-            )
-            db.commit()
-            flash("Admin account created. Please login.")
-            return redirect(url_for("login"))
-
-    return render_template("register.html", errors=errors)
+    flash("Registration is disabled. Use the provided admin credentials to login.")
+    return redirect(url_for("login"))
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     db = get_db()
     error = None
-    next_url = request.args.get("next") or request.form.get("next") or url_for("admin_dashboard")
+    next_url = request.args.get("next") or request.form.get("next") or url_for("gallery")
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
