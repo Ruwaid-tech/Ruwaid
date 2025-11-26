@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block header %}
+<header class="site-header">
+    <div class="logo">ART HUB</div>
+    <nav class="main-nav">
+        <a href="{{ url_for('gallery') }}">Gallery</a>
+        {% if session.get('username') %}<a href="{{ url_for('logout') }}">Logout</a>{% endif %}
+    </nav>
+</header>
+{% endblock %}
+{% block content %}
+<div class="cart-layout">
+    <div class="cart-items">
+        <h2>Cart Items</h2>
+        {% if errors.get('cart') %}<p class="error">{{ errors['cart'] }}</p>{% endif %}
+        {% for item in items %}
+        <div class="cart-row">
+            <div>
+                <strong>{{ item.artwork['title'] }}</strong> × {{ item.qty }} – {{ format_currency(item.line_total) }}
+            </div>
+            <form method="post" action="{{ url_for('cart_remove', artwork_id=item.artwork['id']) }}">
+                <button type="submit" class="link-btn">Remove</button>
+            </form>
+        </div>
+        {% else %}
+        <p>Your cart is empty.</p>
+        {% endfor %}
+        <div class="cart-total">Total: {{ format_currency(total) }}</div>
+    </div>
+    <div class="checkout-form">
+        <h2>Buyer Details</h2>
+        <form method="post" action="{{ url_for('checkout') }}">
+            <label>Name</label>
+            <input type="text" name="name" value="{{ form_data.get('name','') }}" required>
+            {% if errors.get('name') %}<p class="error">{{ errors['name'] }}</p>{% endif %}
+            <label>Phone</label>
+            <input type="text" name="phone" value="{{ form_data.get('phone','') }}" required>
+            {% if errors.get('phone') %}<p class="error">{{ errors['phone'] }}</p>{% endif %}
+            <label>Address</label>
+            <textarea name="address" required>{{ form_data.get('address','') }}</textarea>
+            {% if errors.get('address') %}<p class="error">{{ errors['address'] }}</p>{% endif %}
+            {% if errors.get('stock') %}<p class="error">{{ errors['stock'] }}</p>{% endif %}
+            <div class="payment">(•) Cash on Delivery</div>
+            <div class="form-actions">
+                <button type="submit" class="btn">Confirm Order</button>
+                <a href="{{ url_for('gallery') }}" class="btn secondary">Continue Shopping</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
