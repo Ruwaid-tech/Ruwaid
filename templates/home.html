@@ -1,8 +1,41 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="filter-row">
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Curated originals • Cash on delivery</p>
+        <h1>Discover soulful art crafted for European interiors.</h1>
+        <p class="lede">Textural portraits, serene seascapes, and botanical studies to elevate your living space. Browse the latest drops or return to favourites in your cart.</p>
+        <div class="cta-row">
+            <a class="btn" href="#gallery">View Gallery</a>
+            <a class="btn ghost" href="{{ url_for('cart_view') }}">Open Cart ({{ cart_count }})</a>
+            {% if current_role == 'ADMIN' %}
+            <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="floating-tile gradient"></div>
+        <div class="floating-tile image"></div>
+        <div class="floating-tile accent"></div>
+    </div>
+</section>
+<section class="feature-band">
+    <div class="feature">
+        <h3>European-ready pricing</h3>
+        <p>All prices are displayed in euros with VAT-friendly rounding.</p>
+    </div>
+    <div class="feature">
+        <h3>COD checkout</h3>
+        <p>Reserve your favourite pieces and pay on delivery after inspection.</p>
+    </div>
+    <div class="feature">
+        <h3>Artist direct</h3>
+        <p>Connect with the artist for commissions or framing guidance.</p>
+    </div>
+</section>
+<section class="filter-row" id="gallery">
     <form method="get" class="filter-form">
-        <input type="text" name="search" placeholder="Search" value="{{ search }}">
+        <input type="text" name="search" placeholder="Search artworks" value="{{ search }}">
         <select name="category">
             <option value="All" {% if category=='All' %}selected{% endif %}>All</option>
             {% for cat in categories %}
@@ -23,7 +56,7 @@
         <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
         <div class="card-body">
             <h3>{{ art['title'] }}</h3>
-            <p class="price">₹{{ '%.2f'|format(art['price']) }}</p>
+            <p class="price">{{ format_currency(art['price']) }}</p>
             <p class="desc">{{ art['description'] }}</p>
             <div class="card-actions">
                 <a class="btn" href="{{ url_for('artwork_detail', artwork_id=art['id']) }}">View Details</a>

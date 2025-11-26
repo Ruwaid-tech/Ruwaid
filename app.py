@@ -14,11 +14,15 @@ from flask import (
     url_for,
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 
 DATABASE = os.path.join(os.path.dirname(__file__), "arthub.db")
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads")
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 app = Flask(__name__)
 app.secret_key = "super-secret-art-hub-key"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
 @app.before_request
@@ -34,6 +38,7 @@ def require_login_first():
 def get_db():
     if "db" not in g:
         ensure_db_initialized()
+        ensure_upload_folder()
         conn = sqlite3.connect(DATABASE)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
@@ -57,6 +62,10 @@ def ensure_db_initialized():
         from db_init import init_db
 
         init_db()
+
+
+def ensure_upload_folder():
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
 @app.teardown_appcontext
@@ -86,7 +95,21 @@ def cart_count():
 
 @app.context_processor
 def inject_globals():
-    return {"cart_count": cart_count()}
+    return {
+        "cart_count": cart_count(),
+        "format_currency": format_currency,
+        "current_role": session.get("role"),
+    }
+
+
+def format_currency(value):
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        return "€ 0,00"
+    formatted = f"{amount:,.2f}"
+    formatted = formatted.replace(",", " ").replace(".", ",")
+    return f"€ {formatted}"
 
 
 @app.route("/")
@@ -273,7 +296,7 @@ def register():
         if not errors:
             db.execute(
                 "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
-                (full_name, username, email, generate_password_hash(password), "ADMIN"),
+                (full_name, username, email, generate_password_hash(password), "USER"),
             )
             db.commit()
             flash("Account created. Please login.")
@@ -463,10 +486,11 @@ def validate_artwork_form():
     errors = {}
     title = request.form.get("title", "").strip()
     description = request.form.get("description", "").strip()
-    image_url = request.form.get("image_url", "").strip() or "https://via.placeholder.com/300x200?text=Art+Hub"
+    image_url = request.form.get("image_url", "").strip()
     category = request.form.get("category", "").strip()
     price = request.form.get("price", "0").strip()
     stock = request.form.get("stock", "0").strip()
+    upload = request.files.get("image_file")
     try:
         price_val = float(price)
     except ValueError:
@@ -483,15 +507,31 @@ def validate_artwork_form():
         errors["description"] = "Description required"
     if not category:
         errors["category"] = "Category required"
+
+    saved_path = None
+    if upload and upload.filename:
+        if allowed_file(upload.filename):
+            filename = secure_filename(upload.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            upload.save(filepath)
+            saved_path = url_for("static", filename=f"uploads/{filename}")
+        else:
+            errors["image_file"] = "Unsupported file type"
+
+    image_final = saved_path or image_url or request.form.get("existing_image") or "https://via.placeholder.com/300x200?text=Art+Hub"
     data = {
         "title": title,
         "description": description,
-        "image_url": image_url,
+        "image_url": image_final,
         "category": category,
         "price": price_val,
         "stock": stock_val,
     }
     return errors, data
+
+
+def allowed_file(filename: str) -> bool:
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 if __name__ == "__main__":

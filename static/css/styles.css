@@ -1,28 +1,28 @@
 :root {
-    --primary: #2f3e75;
-    --accent: #3fbac2;
-    --muted: #8ba3d3;
-    --bg: #f5f7fb;
+    --primary: #274060;
+    --accent: #7bd5f5;
+    --muted: #92a7c7;
+    --bg: #f3f6fb;
     --card: #ffffff;
-    --border: #d9e3f5;
-    --text: #1c2541;
+    --border: #d6e2f1;
+    --text: #172238;
 }
 
 body.dark-mode {
-    --primary: #9bb4ff;
-    --accent: #6ad8de;
-    --muted: #bac8ff;
-    --bg: #0f172a;
-    --card: #111827;
-    --border: #1f2937;
-    --text: #e5e7eb;
+    --primary: #b4c9ff;
+    --accent: #63d2ff;
+    --muted: #d0d9ff;
+    --bg: #0c1220;
+    --card: #101827;
+    --border: #1d2a3f;
+    --text: #e8ecf7;
 }
 * { box-sizing: border-box; }
 body {
     font-family: 'Inter', Arial, sans-serif;
     margin: 0;
-    background: radial-gradient(circle at 20% 20%, rgba(63,186,194,0.06), transparent 26%),
-                radial-gradient(circle at 80% 0%, rgba(47,62,117,0.08), transparent 22%),
+    background: radial-gradient(circle at 18% 18%, rgba(123,213,245,0.14), transparent 30%),
+                radial-gradient(circle at 78% 6%, rgba(39,64,96,0.12), transparent 24%),
                 var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -32,7 +32,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 14px 24px;
-    background: linear-gradient(90deg, var(--card), rgba(63,186,194,0.12));
+    background: linear-gradient(90deg, var(--card), rgba(123,213,245,0.18));
     border-bottom: 2px solid var(--border);
     position: sticky;
     top: 0;
@@ -62,6 +62,19 @@ body {
 .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; background: var(--card); padding: 16px; border: 1px dashed var(--border); border-radius: 12px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); }
 .detail-image img { width: 100%; border-radius: 6px; }
 .qty-form input { width: 80px; padding: 8px; margin: 6px 0; }
+.hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 26px; padding: 20px; background: linear-gradient(135deg, rgba(39,64,96,0.12), rgba(123,213,245,0.16)); border: 1px dashed var(--border); border-radius: 16px; box-shadow: 0 10px 28px rgba(0,0,0,0.08); margin-bottom: 20px; }
+.hero-copy h1 { margin: 8px 0 10px; font-size: 2rem; }
+.hero-copy .lede { color: var(--muted); max-width: 640px; }
+.eyebrow { text-transform: uppercase; letter-spacing: 1px; font-weight: 700; color: var(--primary); font-size: 12px; }
+.hero-visual { position: relative; min-height: 240px; }
+.floating-tile { position: absolute; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.14); opacity: 0.9; }
+.floating-tile.gradient { width: 180px; height: 180px; background: linear-gradient(145deg, #4f7ca4, #7bd5f5); top: 10%; left: 6%; animation: float 6s ease-in-out infinite; }
+.floating-tile.image { width: 200px; height: 220px; background: url('https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=800&q=80') center/cover; top: 30%; right: 0; animation: float 7s ease-in-out infinite reverse; }
+.floating-tile.accent { width: 120px; height: 120px; background: rgba(123,213,245,0.25); bottom: 4%; left: 36%; backdrop-filter: blur(6px); animation: float 5.5s ease-in-out infinite alternate; }
+@keyframes float { 0% { transform: translateY(0); } 50% { transform: translateY(-12px); } 100% { transform: translateY(0); } }
+.feature-band { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 12px; margin-bottom: 16px; }
+.feature { background: var(--card); border: 1px dashed var(--border); padding: 12px; border-radius: 10px; box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
 .cart-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 .cart-items, .checkout-form { background: var(--card); padding: 16px; border: 1px dashed var(--border); border-radius: 10px; box-shadow: 0 6px 16px rgba(0,0,0,0.05); }
 .cart-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding: 8px 0; }

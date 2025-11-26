@@ -16,7 +16,7 @@
     <div class="detail-info">
         <h2>{{ artwork['title'] }}</h2>
         <p>{{ artwork['description'] }}</p>
-        <p class="price">₹{{ '%.2f'|format(artwork['price']) }}</p>
+        <p class="price">{{ format_currency(artwork['price']) }}</p>
         <p>In Stock: {{ artwork['stock'] }}</p>
         <form method="post" action="{{ url_for('cart_add', artwork_id=artwork['id']) }}" class="qty-form">
             <label>Quantity</label>

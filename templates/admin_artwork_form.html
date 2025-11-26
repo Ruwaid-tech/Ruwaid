@@ -12,9 +12,14 @@
 </header>
 {% endblock %}
 {% block content %}
-<a class="back-link" href="{{ url_for('admin_artworks') }}">← Back to Artworks</a>
-<h1>{{ 'Edit Artwork' if editing else 'Add Artwork' }}</h1>
-<form method="post" class="admin-form">
+<div class="page-heading">
+    <div>
+        <a class="back-link" href="{{ url_for('admin_artworks') }}">← Back to Artworks</a>
+        <h1>{{ 'Edit Artwork' if editing else 'Add Artwork' }}</h1>
+    </div>
+    <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+</div>
+<form method="post" class="admin-form" enctype="multipart/form-data">
     <label>Title</label>
     <input type="text" name="title" value="{{ (artwork['title'] if artwork else '') }}" required>
     {% if errors.get('title') %}<p class="error">{{ errors['title'] }}</p>{% endif %}
@@ -22,7 +27,11 @@
     <textarea name="description" required>{{ (artwork['description'] if artwork else '') }}</textarea>
     {% if errors.get('description') %}<p class="error">{{ errors['description'] }}</p>{% endif %}
     <label>Image URL</label>
-    <input type="text" name="image_url" value="{{ (artwork['image_url'] if artwork else '') }}">
+    <input type="text" name="image_url" value="{{ (artwork['image_url'] if artwork else '') }}" placeholder="https://...">
+    <label>Or upload image</label>
+    <input type="file" name="image_file" accept="image/*">
+    {% if errors.get('image_file') %}<p class="error">{{ errors['image_file'] }}</p>{% endif %}
+    {% if artwork %}<input type="hidden" name="existing_image" value="{{ artwork['image_url'] }}">{% endif %}
     <label>Category</label>
     <input type="text" name="category" value="{{ (artwork['category'] if artwork else '') }}" required>
     {% if errors.get('category') %}<p class="error">{{ errors['category'] }}</p>{% endif %}

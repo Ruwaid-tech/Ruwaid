@@ -16,7 +16,7 @@
         {% for item in items %}
         <div class="cart-row">
             <div>
-                <strong>{{ item.artwork['title'] }}</strong> × {{ item.qty }} – ₹{{ '%.2f'|format(item.line_total) }}
+                <strong>{{ item.artwork['title'] }}</strong> × {{ item.qty }} – {{ format_currency(item.line_total) }}
             </div>
             <form method="post" action="{{ url_for('cart_remove', artwork_id=item.artwork['id']) }}">
                 <button type="submit" class="link-btn">Remove</button>
@@ -25,7 +25,7 @@
         {% else %}
         <p>Your cart is empty.</p>
         {% endfor %}
-        <div class="cart-total">Total: ₹{{ '%.2f'|format(total) }}</div>
+        <div class="cart-total">Total: {{ format_currency(total) }}</div>
     </div>
     <div class="checkout-form">
         <h2>Buyer Details</h2>
