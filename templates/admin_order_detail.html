@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block header %}
+<header class="site-header admin">
+    <div class="logo">Order Detail</div>
+    <nav class="main-nav">
+        <a href="{{ url_for('admin_orders') }}">Orders</a>
+        <a href="{{ url_for('admin_artworks') }}">Artworks</a>
+        <a href="{{ url_for('admin_settings') }}">Settings</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+</header>
+{% endblock %}
+{% block content %}
+<div class="flex-between">
+    <a class="back-link" href="{{ url_for('admin_orders') }}">← Back to Orders</a>
+    <div class="cta-row">
+        <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+        <a class="btn ghost" href="{{ url_for('gallery') }}">Back to Gallery</a>
+    </div>
+</div>
+<h1>Order {{ order['order_code'] }}</h1>
+<div class="order-info">
+    <p><strong>Buyer:</strong> {{ order['buyer_name'] }}</p>
+    <p><strong>Phone:</strong> {{ order['phone'] }}</p>
+    <p><strong>Address:</strong> {{ order['address'] }}</p>
+    <p><strong>Status:</strong> {{ order['status'] }}</p>
+    <p><strong>Date:</strong> {{ order['created_at'] }}</p>
+</div>
+<form method="post" class="status-form">
+    <label>Update Status</label>
+    <select name="status">
+        <option value="Pending COD" {% if order['status']=='Pending COD' %}selected{% endif %}>Pending COD</option>
+        <option value="Completed" {% if order['status']=='Completed' %}selected{% endif %}>Completed</option>
+    </select>
+    <button type="submit" class="btn">Save</button>
+</form>
+<h2>Items</h2>
+<table class="table">
+    <tr><th>Artwork</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr>
+    {% for line in lines %}
+    <tr>
+        <td>{{ line['title'] }}</td>
+        <td>{{ line['quantity'] }}</td>
+        <td>{{ format_currency(line['unit_price']) }}</td>
+        <td>{{ format_currency(line['quantity'] * line['unit_price']) }}</td>
+    </tr>
+    {% endfor %}
+    <tr><td colspan="3" class="text-right"><strong>Total</strong></td><td><strong>{{ format_currency(total) }}</strong></td></tr>
+</table>
+{% endblock %}
