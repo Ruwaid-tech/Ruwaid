@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <p class="eyebrow">Welcome to</p>
+        <h1>Art Hub</h1>
+        <p class="sub">A vibrant space for original paintings, sketches, and limited editions by the artist.</p>
+        <div class="hero-actions">
+            <a class="btn primary" href="{{ url_for('gallery') }}">View Gallery</a>
+            <a class="btn ghost" href="{{ url_for('about') }}">About</a>
+            <a class="btn outline" href="{{ url_for('login') }}">Admin Login</a>
+        </div>
+    </div>
+    <div class="floating-cards">
+        {% for art in featured %}
+        <div class="float-card">
+            <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
+            <div class="float-info">
+                <p class="title">{{ art['title'] }}</p>
+                <p class="price">{{ format_currency(art['price']) }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+<section class="featured-strip">
+    <div class="strip-head">
+        <h2>Featured Artworks</h2>
+        <a href="{{ url_for('gallery') }}" class="link">View Gallery →</a>
+    </div>
+    <div class="strip-grid">
+        {% for art in featured %}
+        <div class="strip-card">
+            <img src="{{ art['image_url'] }}" alt="{{ art['title'] }}">
+            <div>
+                <h3>{{ art['title'] }}</h3>
+                <p class="price">{{ format_currency(art['price']) }}</p>
+            </div>
+        </div>
+        {% else %}
+        <p>No artworks yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

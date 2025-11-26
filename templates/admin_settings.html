@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="admin-nav">
+    <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('admin_orders') }}">Orders</a>
+    <a href="{{ url_for('admin_artworks') }}">Artworks</a>
+    <a href="{{ url_for('admin_settings') }}">Settings</a>
+    <a href="{{ url_for('logout') }}">Logout</a>
+</div>
+<section class="panel">
+    <div class="panel-header">
+        <h1>Settings</h1>
+        <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+    </div>
+    <form class="admin-form" method="post">
+        <label>Owner Name</label>
+        <input type="text" name="owner_name" value="{{ settings['owner_name'] if settings else '' }}" required>
+        {% if errors.get('owner_name') %}<p class="error">{{ errors['owner_name'] }}</p>{% endif %}
+        <label>Phone</label>
+        <input type="text" name="phone" value="{{ settings['phone'] if settings else '' }}" required>
+        {% if errors.get('phone') %}<p class="error">{{ errors['phone'] }}</p>{% endif %}
+        <label>Alt Phone</label>
+        <input type="text" name="alt_phone" value="{{ settings['alt_phone'] if settings else '' }}">
+        <label>About Content</label>
+        <textarea name="about_content" required>{{ settings['about_content'] if settings else '' }}</textarea>
+        {% if errors.get('about_content') %}<p class="error">{{ errors['about_content'] }}</p>{% endif %}
+        <button class="btn primary" type="submit">Save Settings</button>
+    </form>
+</section>
+{% endblock %}
