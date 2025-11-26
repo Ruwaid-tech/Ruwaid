@@ -1,16 +1,14 @@
-document.addEventListener('click', (e) => {
-    if (e.target.classList.contains('toggle')) {
-        const id = e.target.getAttribute('data-target');
-        const input = document.getElementById(id);
-        if (input) {
-            const newType = input.type === 'password' ? 'text' : 'password';
-            input.type = newType;
-            e.target.textContent = newType === 'password' ? 'Show' : 'Hide';
-        }
-    }
-    if (e.target.closest('.delete-form')) {
-        if (!confirm('Delete this artwork?')) {
-            e.preventDefault();
-        }
-    }
+function togglePassword(id) {
+    const input = document.getElementById(id);
+    if (!input) return;
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+}
+
+// subtle animation for hero cards
+window.addEventListener('DOMContentLoaded', () => {
+    const cards = document.querySelectorAll('.floating-card');
+    cards.forEach((card, idx) => {
+        card.style.animationDelay = `${idx * 0.2}s`;
+    });
 });

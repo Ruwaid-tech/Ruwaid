@@ -1,23 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="admin-nav">
-    <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('admin_orders') }}">Orders</a>
-    <a href="{{ url_for('admin_artworks') }}">Artworks</a>
-    <a href="{{ url_for('admin_settings') }}">Settings</a>
-    <a href="{{ url_for('logout') }}">Logout</a>
-</div>
-<section class="panel">
+<div class="page-header">
     <h1>Admin Dashboard</h1>
-    <div class="stats">
-        <div class="stat"><span>Total Artworks</span><strong>{{ total_artworks }}</strong></div>
-        <div class="stat"><span>Total Orders</span><strong>{{ total_orders }}</strong></div>
-        <div class="stat"><span>Pending COD</span><strong>{{ pending_orders }}</strong></div>
-    </div>
-    <div class="admin-links">
-        <a class="btn primary" href="{{ url_for('admin_orders') }}">Manage Orders</a>
-        <a class="btn" href="{{ url_for('admin_artworks') }}">Manage Artworks</a>
-        <a class="btn ghost" href="{{ url_for('admin_settings') }}">Settings</a>
-    </div>
-</section>
+    <p class="muted">Manage artworks, orders, and content.</p>
+</div>
+<div class="stats">
+    <div class="stat-card"><p>Total Artworks</p><h2>{{ total_artworks }}</h2></div>
+    <div class="stat-card"><p>Total Orders</p><h2>{{ total_orders }}</h2></div>
+    <div class="stat-card"><p>Pending COD</p><h2>{{ pending_orders }}</h2></div>
+</div>
+<div class="actions">
+    <a class="btn primary" href="{{ url_for('admin_orders') }}">Manage Orders</a>
+    <a class="btn" href="{{ url_for('admin_artworks') }}">Manage Artworks</a>
+    <a class="btn" href="{{ url_for('admin_settings') }}">Settings</a>
+    <a class="btn ghost" href="{{ url_for('gallery') }}">View Gallery</a>
+</div>
 {% endblock %}

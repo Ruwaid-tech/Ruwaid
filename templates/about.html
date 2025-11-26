@@ -1,14 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="panel">
-    <h1>About the Artist</h1>
-    <p class="lead">{{ (settings['about_content'] if settings else '') | replace('\n','<br>') | safe }}</p>
-    {% if settings %}
+<h1>About</h1>
+<div class="about-card">
+    <p>{{ settings.about_content }}</p>
     <div class="contact-card">
-        <p><strong>{{ settings['owner_name'] }}</strong></p>
-        <p>Phone: {{ settings['phone'] }}</p>
-        {% if settings['alt_phone'] %}<p>Alt: {{ settings['alt_phone'] }}</p>{% endif %}
+        <h3>Contact</h3>
+        <p>{{ settings.owner_name }}</p>
+        <p>{{ settings.phone }} {% if settings.alt_phone %}/ {{ settings.alt_phone }}{% endif %}</p>
     </div>
-    {% endif %}
-</section>
+</div>
 {% endblock %}
