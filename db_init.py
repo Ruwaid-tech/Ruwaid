@@ -98,7 +98,8 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             owner_name TEXT NOT NULL,
             phone TEXT NOT NULL,
-            alt_phone TEXT
+            alt_phone TEXT,
+            about_content TEXT
         );
         """
     )
@@ -122,11 +123,12 @@ def init_db():
         )
 
     cur.execute(
-        "INSERT INTO settings (owner_name, phone, alt_phone) VALUES (?, ?, ?)",
+        "INSERT INTO settings (owner_name, phone, alt_phone, about_content) VALUES (?, ?, ?, ?)",
         (
             "Ms. Priya Sharma",
             "+91-98XXXXXX5",
             "+91-80XXXXXX1",
+            "Art Hub showcases colourful portraits, tranquil seascapes, and bespoke commissions crafted with care.",
         ),
     )
 

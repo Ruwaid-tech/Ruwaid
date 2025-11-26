@@ -22,6 +22,8 @@
     {% if errors.get('phone') %}<p class="error">{{ errors['phone'] }}</p>{% endif %}
     <label>Alt Phone</label>
     <input type="text" name="alt_phone" value="{{ settings['alt_phone'] if settings else '' }}">
+    <label>About Page Content</label>
+    <textarea name="about_content" rows="4">{{ settings['about_content'] if settings else '' }}</textarea>
     <button type="submit" class="btn">Save Changes</button>
 </form>
 {% endblock %}

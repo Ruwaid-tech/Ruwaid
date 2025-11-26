@@ -12,6 +12,6 @@
         <p><strong>Owner:</strong> {{ settings['owner_name'] if settings else '' }}</p>
         <p><strong>Phone:</strong> {{ settings['phone'] if settings else '' }}</p>
     </div>
-    <a class="btn" href="{{ url_for('home') }}">Back to Gallery</a>
+    <a class="btn" href="{{ url_for('gallery') }}">Back to Gallery</a>
 </div>
 {% endblock %}

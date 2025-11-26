@@ -3,7 +3,7 @@
 <header class="site-header">
     <div class="logo">ART HUB</div>
     <nav class="main-nav">
-        <a href="{{ url_for('home') }}">Gallery</a>
+        <a href="{{ url_for('gallery') }}">Gallery</a>
         {% if session.get('username') %}<a href="{{ url_for('logout') }}">Logout</a>{% endif %}
     </nav>
 </header>
@@ -43,7 +43,7 @@
             <div class="payment">(•) Cash on Delivery</div>
             <div class="form-actions">
                 <button type="submit" class="btn">Confirm Order</button>
-                <a href="{{ url_for('home') }}" class="btn secondary">Continue Shopping</a>
+                <a href="{{ url_for('gallery') }}" class="btn secondary">Continue Shopping</a>
             </div>
         </form>
     </div>

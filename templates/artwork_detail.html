@@ -3,7 +3,7 @@
 <header class="site-header">
     <div class="logo">ART HUB</div>
     <nav class="main-nav">
-        <a href="{{ url_for('home') }}">Gallery</a>
+        <a href="{{ url_for('gallery') }}">Gallery</a>
         <a href="{{ url_for('cart_view') }}">Cart</a>
     </nav>
 </header>
@@ -23,7 +23,7 @@
             <input type="number" name="quantity" value="1" min="1" max="{{ artwork['stock'] }}">
             <div class="card-actions">
                 <button type="submit" class="btn">Add to Cart</button>
-                <a href="{{ url_for('home') }}" class="btn secondary">Back to Gallery</a>
+                <a href="{{ url_for('gallery') }}" class="btn secondary">Back to Gallery</a>
             </div>
         </form>
     </div>

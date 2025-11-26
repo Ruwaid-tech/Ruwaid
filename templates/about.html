@@ -2,11 +2,11 @@
 {% block content %}
 <section class="panel">
     <h1>About Art Hub</h1>
-    <p class="lead">Discover curated artworks crafted with passion. Browse portraits, landscapes, and abstracts, then place an easy cash-on-delivery order.</p>
+    <p class="lead">{{ settings['about_content'] if settings and settings['about_content'] else "Discover curated artworks crafted with passion." }}</p>
     <div class="about-grid">
         <div class="about-card">
             <h2>Our Story</h2>
-            <p>Art Hub is a cozy corner for bespoke pieces and limited-run prints. Every work is catalogued with clear details so you know exactly what you are getting.</p>
+            <p>{{ settings['about_content'] if settings and settings['about_content'] else "Art Hub is a cozy corner for bespoke pieces and limited-run prints." }}</p>
         </div>
         <div class="about-card">
             <h2>Contact the Artist</h2>
@@ -21,7 +21,7 @@
         <div class="about-card">
             <h2>Visit the Gallery</h2>
             <p>Return to the gallery to explore all available artworks, filter by category, and view detailed snapshots.</p>
-            <a class="btn" href="{{ url_for('home') }}">Back to Gallery</a>
+            <a class="btn" href="{{ url_for('gallery') }}">Back to Gallery</a>
         </div>
     </div>
 </section>

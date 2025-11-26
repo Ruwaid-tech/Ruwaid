@@ -113,8 +113,15 @@ def format_currency(value):
 
 
 @app.route("/")
-@app.route("/gallery")
 def home():
+    db = get_db()
+    featured = db.execute("SELECT * FROM artworks ORDER BY created_at DESC LIMIT 3").fetchall()
+    settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
+    return render_template("home.html", featured=featured, settings=settings)
+
+
+@app.route("/gallery")
+def gallery():
     db = get_db()
     search = request.args.get("search", "").strip()
     category = request.args.get("category", "All")
@@ -139,7 +146,7 @@ def home():
     artworks = db.execute(query, params).fetchall()
     categories = [row[0] for row in db.execute("SELECT DISTINCT category FROM artworks").fetchall()]
     return render_template(
-        "home.html", artworks=artworks, categories=categories, search=search, category=category, sort=sort
+        "gallery.html", artworks=artworks, categories=categories, search=search, category=category, sort=sort
     )
 
 
@@ -462,6 +469,7 @@ def admin_settings():
         owner_name = request.form.get("owner_name", "").strip()
         phone = request.form.get("phone", "").strip()
         alt_phone = request.form.get("alt_phone", "").strip()
+        about_content = request.form.get("about_content", "").strip()
         if not owner_name:
             errors["owner_name"] = "Owner name required"
         if not phone:
@@ -469,13 +477,13 @@ def admin_settings():
         if not errors:
             if settings:
                 db.execute(
-                    "UPDATE settings SET owner_name=?, phone=?, alt_phone=? WHERE id=?",
-                    (owner_name, phone, alt_phone, settings["id"]),
+                    "UPDATE settings SET owner_name=?, phone=?, alt_phone=?, about_content=? WHERE id=?",
+                    (owner_name, phone, alt_phone, about_content, settings["id"]),
                 )
             else:
                 db.execute(
-                    "INSERT INTO settings (owner_name, phone, alt_phone) VALUES (?, ?, ?)",
-                    (owner_name, phone, alt_phone),
+                    "INSERT INTO settings (owner_name, phone, alt_phone, about_content) VALUES (?, ?, ?, ?)",
+                    (owner_name, phone, alt_phone, about_content),
                 )
             db.commit()
             settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
