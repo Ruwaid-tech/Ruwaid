@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h1>Gallery</h1>
+    <form class="filters" method="GET">
+        <input type="text" name="search" placeholder="Search" value="{{ search }}">
+        <select name="category">
+            <option value="All" {% if category=='All' %}selected{% endif %}>All Categories</option>
+            {% for c in categories %}
+                <option value="{{ c }}" {% if category==c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+        </select>
+        <select name="sort">
+            <option value="">Sort by</option>
+            <option value="asc" {% if sort=='asc' %}selected{% endif %}>Price Low → High</option>
+            <option value="desc" {% if sort=='desc' %}selected{% endif %}>Price High → Low</option>
+        </select>
+        <button class="btn primary" type="submit">Apply</button>
+    </form>
+</div>
+<div class="cards">
+    {% for art in artworks %}
+    <div class="card">
+        <img src="{{ art.image_url }}" alt="{{ art.title }}">
+        <h3>{{ art.title }}</h3>
+        <p>{{ art.description[:90] }}...</p>
+        <p class="price">{{ format_currency(art.price) }}</p>
+        <div class="card-actions">
+            <a class="btn" href="{{ url_for('artwork_detail', artwork_id=art.id) }}">View Details</a>
+            <form method="POST" action="{{ url_for('cart_add', artwork_id=art.id) }}">
+                <button class="btn primary" type="submit">Add to Cart</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <p>No artworks found.</p>
+    {% endfor %}
+</div>
+{% endblock %}

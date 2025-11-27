@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block extra_css %}<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-text">
+        <p class="eyebrow">Welcome back, {{ session.get('username') }}!</p>
+        <h1>Art Hub</h1>
+        <p class="lead">Colorful stories on canvas, tailored for your space. Dive into the gallery and find your next statement piece.</p>
+        <div class="actions">
+            <a class="btn primary" href="{{ url_for('gallery') }}">Go to Gallery</a>
+            <a class="btn ghost" href="{{ url_for('about') }}">About</a>
+            <a class="btn ghost" href="{{ url_for('cart_view') }}">View Cart ({{ cart_count }})</a>
+        </div>
+    </div>
+    <div class="hero-visual">
+        <div class="floating-card">Curated Art</div>
+        <div class="floating-card">COD Friendly</div>
+        <div class="floating-card">Crafted for you</div>
+    </div>
+</section>
+<section class="section">
+    <div class="section-header">
+        <h2>Featured Artworks</h2>
+    </div>
+    <div class="cards">
+        {% for art in featured %}
+        <div class="card">
+            <img src="{{ art.image_url }}" alt="{{ art.title }}">
+            <h3>{{ art.title }}</h3>
+            <p>{{ art.description[:80] }}...</p>
+            <p class="price">{{ format_currency(art.price) }}</p>
+            <div class="card-actions">
+                <a class="btn" href="{{ url_for('artwork_detail', artwork_id=art.id) }}">View Details</a>
+            </div>
+        </div>
+        {% else %}
+        <p>No artworks yet.</p>
+        {% endfor %}
+    </div>
+</section>
+<section class="section muted">
+    <div class="info-grid">
+        <div>
+            <h3>Cash on Delivery</h3>
+            <p>Order with confidence and pay when your art arrives at your door.</p>
+        </div>
+        <div>
+            <h3>Curated Picks</h3>
+            <p>Handpicked works across portraits, landscapes, abstracts, and more.</p>
+        </div>
+        <div>
+            <h3>Direct Contact</h3>
+            <p>Questions? Reach out to {{ settings.owner_name }} at {{ settings.phone }}.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

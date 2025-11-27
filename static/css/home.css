@@ -1,0 +1,12 @@
+.hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: center; padding: 24px; background: linear-gradient(135deg, #1d4ed8, #9333ea, #f97316); border-radius: 16px; color: #0b1222; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+.hero-text h1 { font-size: 48px; margin: 8px 0; }
+.hero-text .lead { font-size: 18px; max-width: 520px; color: #0b1222; }
+.hero .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.eyebrow { letter-spacing: 2px; text-transform: uppercase; font-weight: 700; }
+.hero-visual { display: grid; gap: 10px; }
+.floating-card { background: rgba(255,255,255,0.22); padding: 14px; border-radius: 12px; color: #0b1222; font-weight: 700; animation: float 4s ease-in-out infinite; }
+.section { margin-top: 26px; }
+.section.muted { background: #0b1222; padding: 16px; border-radius: 16px; border:1px solid rgba(255,255,255,0.08); }
+.section-header { display: flex; justify-content: space-between; align-items: center; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 12px; }
+@keyframes float { 0% { transform: translateY(0);} 50% { transform: translateY(-10px);} 100% { transform: translateY(0);} }

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>About</h1>
+<div class="about-card">
+    <p>{{ settings.about_content }}</p>
+    <div class="contact-card">
+        <h3>Contact</h3>
+        <p>{{ settings.owner_name }}</p>
+        <p>{{ settings.phone }} {% if settings.alt_phone %}/ {{ settings.alt_phone }}{% endif %}</p>
+    </div>
+</div>
+{% endblock %}

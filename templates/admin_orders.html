@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h1>Orders</h1>
+    <a class="btn ghost" href="{{ url_for('admin_dashboard') }}">Back to Dashboard</a>
+</div>
+<table class="table">
+    <thead>
+        <tr><th>Code</th><th>Buyer</th><th>Phone</th><th>Status</th><th>Created</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for order in orders %}
+        <tr>
+            <td>{{ order.order_code }}</td>
+            <td>{{ order.buyer_name }}</td>
+            <td>{{ order.phone }}</td>
+            <td>{{ order.status }}</td>
+            <td>{{ order.created_at }}</td>
+            <td><a class="btn" href="{{ url_for('admin_order_detail', order_id=order.id) }}">View</a></td>
+        </tr>
+    {% else %}
+        <tr><td colspan="6">No orders yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
