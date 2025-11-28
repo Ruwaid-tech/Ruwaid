@@ -5,6 +5,7 @@ from functools import wraps
 
 from flask import (
     Flask,
+    abort,
     flash,
     g,
     redirect,
@@ -16,8 +17,9 @@ from flask import (
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
-DATABASE = os.path.join(os.path.dirname(__file__), "arthub.db")
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "static", "uploads")
+BASE_DIR = os.path.dirname(__file__)
+DATABASE = os.path.join(BASE_DIR, "arthub.db")
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 app = Flask(__name__)
@@ -28,10 +30,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 # ---------- Database helpers ----------
 def get_db():
     if "db" not in g:
-        if not os.path.exists(DATABASE):
-            from db_init import init_db
-
-            init_db()
         ensure_upload_folder()
         conn = sqlite3.connect(DATABASE)
         conn.row_factory = sqlite3.Row
@@ -51,29 +49,30 @@ def ensure_upload_folder():
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
 
-# ---------- Utilities ----------
+# ---------- Decorators ----------
 def login_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
-        if session.get("user_id") is None or session.get("role") != "ADMIN":
-            flash("Admin access required.")
+        if session.get("user_id") is None:
             return redirect(url_for("login", next=request.path))
         return view(**kwargs)
 
     return wrapped_view
 
 
-def user_login_required(view):
+def admin_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
         if session.get("user_id") is None:
-            flash("Please login to continue.")
             return redirect(url_for("login", next=request.path))
+        if session.get("role") != "ADMIN":
+            return redirect(url_for("user_home"))
         return view(**kwargs)
 
     return wrapped_view
 
 
+# ---------- Utilities ----------
 def get_cart():
     return session.setdefault("cart", {})
 
@@ -96,21 +95,97 @@ def inject_globals():
         "cart_count": cart_count(),
         "format_currency": format_currency,
         "current_role": session.get("role"),
+        "session": session,
     }
 
 
-# ---------- Public routes ----------
+# ---------- Routing ----------
 @app.route("/")
-def home():
+def index():
+    if session.get("user_id"):
+        if session.get("role") == "ADMIN":
+            return redirect(url_for("admin_dashboard"))
+        return redirect(url_for("user_home"))
+    return redirect(url_for("login"))
+
+
+# ---- Auth ----
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    db = get_db()
+    error = None
+    next_url = request.args.get("next") or request.form.get("next")
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+        if user and check_password_hash(user["password_hash"], password):
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            session["role"] = user["role"]
+            if user["role"] == "ADMIN":
+                return redirect(url_for("admin_dashboard"))
+            return redirect(url_for("user_home"))
+        error = "Invalid username or password"
+    return render_template("login.html", error=error, next_url=next_url)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    db = get_db()
+    error = None
+    if request.method == "POST":
+        full_name = request.form.get("full_name", "").strip()
+        username = request.form.get("username", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+
+        if not full_name:
+            error = "Full name is required"
+        elif not username:
+            error = "Username is required"
+        elif not password:
+            error = "Password is required"
+        elif password != confirm:
+            error = "Passwords do not match"
+        else:
+            existing = db.execute("SELECT 1 FROM users WHERE username=?", (username,)).fetchone()
+            if existing:
+                error = "Username already taken"
+        if error is None:
+            db.execute(
+                "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, 'CLIENT')",
+                (full_name, username, email, generate_password_hash(password)),
+            )
+            db.commit()
+            flash("Account created. Please log in.")
+            return redirect(url_for("login"))
+    return render_template("register.html", error=error)
+
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
+
+# ---- User pages ----
+@app.route("/user/home")
+@login_required
+def user_home():
+    if session.get("role") == "ADMIN":
+        return redirect(url_for("admin_dashboard"))
     db = get_db()
     featured = db.execute(
         "SELECT * FROM artworks ORDER BY created_at DESC LIMIT 3"
     ).fetchall()
     settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
-    return render_template("home.html", featured=featured, settings=settings)
+    return render_template("user_home.html", featured=featured, settings=settings)
 
 
 @app.route("/about")
+@login_required
 def about():
     db = get_db()
     settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
@@ -118,7 +193,7 @@ def about():
 
 
 @app.route("/gallery")
-@user_login_required
+@login_required
 def gallery():
     db = get_db()
     search = request.args.get("search", "").strip()
@@ -154,7 +229,7 @@ def gallery():
 
 
 @app.route("/artwork/<int:artwork_id>")
-@user_login_required
+@login_required
 def artwork_detail(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT * FROM artworks WHERE id=?", (artwork_id,)).fetchone()
@@ -165,7 +240,7 @@ def artwork_detail(artwork_id):
 
 
 @app.route("/cart")
-@user_login_required
+@login_required
 def cart_view():
     db = get_db()
     cart = get_cart()
@@ -188,7 +263,7 @@ def cart_view():
 
 
 @app.route("/cart/add/<int:artwork_id>", methods=["POST"])
-@user_login_required
+@login_required
 def cart_add(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT stock FROM artworks WHERE id=?", (artwork_id,)).fetchone()
@@ -205,7 +280,7 @@ def cart_add(artwork_id):
 
 
 @app.route("/cart/remove/<int:artwork_id>", methods=["POST"])
-@user_login_required
+@login_required
 def cart_remove(artwork_id):
     cart = get_cart()
     cart.pop(str(artwork_id), None)
@@ -214,7 +289,7 @@ def cart_remove(artwork_id):
 
 
 @app.route("/checkout", methods=["POST"])
-@user_login_required
+@login_required
 def checkout():
     db = get_db()
     cart = get_cart()
@@ -276,7 +351,7 @@ def checkout():
 
 
 @app.route("/order/confirm/<int:order_id>")
-@user_login_required
+@login_required
 def order_confirm(order_id):
     db = get_db()
     order = db.execute("SELECT * FROM orders WHERE id=?", (order_id,)).fetchone()
@@ -287,44 +362,9 @@ def order_confirm(order_id):
     return render_template("order_confirm.html", order=order, settings=settings)
 
 
-# ---------- Auth routes ----------
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    flash("Registration is disabled. Use the provided admin credentials to login.")
-    return redirect(url_for("login"))
-
-
-@app.route("/login", methods=["GET", "POST"])
-def login():
-    db = get_db()
-    error = None
-    next_url = request.args.get("next") or request.form.get("next") or url_for("gallery")
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        password = request.form.get("password", "")
-        user = db.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-        if user and check_password_hash(user["password_hash"], password):
-            if user["role"] != "ADMIN":
-                error = "Admin access only."
-            else:
-                session["user_id"] = user["id"]
-                session["username"] = user["username"]
-                session["role"] = user["role"]
-                return redirect(next_url)
-        else:
-            error = "Invalid credentials"
-    return render_template("login.html", error=error, next_url=next_url)
-
-
-@app.route("/logout")
-def logout():
-    session.clear()
-    return redirect(url_for("home"))
-
-
-# ---------- Admin routes ----------
+# ---- Admin ----
 @app.route("/admin")
-@login_required
+@admin_required
 def admin_dashboard():
     db = get_db()
     total_artworks = db.execute("SELECT COUNT(*) FROM artworks").fetchone()[0]
@@ -339,7 +379,7 @@ def admin_dashboard():
 
 
 @app.route("/admin/orders")
-@login_required
+@admin_required
 def admin_orders():
     db = get_db()
     orders = db.execute(
@@ -349,7 +389,7 @@ def admin_orders():
 
 
 @app.route("/admin/orders/<int:order_id>", methods=["GET", "POST"])
-@login_required
+@admin_required
 def admin_order_detail(order_id):
     db = get_db()
     if request.method == "POST":
@@ -373,7 +413,7 @@ def admin_order_detail(order_id):
 
 
 @app.route("/admin/artworks")
-@login_required
+@admin_required
 def admin_artworks():
     db = get_db()
     artworks = db.execute("SELECT * FROM artworks ORDER BY created_at DESC").fetchall()
@@ -381,7 +421,7 @@ def admin_artworks():
 
 
 @app.route("/admin/artworks/new", methods=["GET", "POST"])
-@login_required
+@admin_required
 def admin_artwork_new():
     db = get_db()
     errors = {}
@@ -407,7 +447,7 @@ def admin_artwork_new():
 
 
 @app.route("/admin/artworks/<int:artwork_id>/edit", methods=["GET", "POST"])
-@login_required
+@admin_required
 def admin_artwork_edit(artwork_id):
     db = get_db()
     artwork = db.execute("SELECT * FROM artworks WHERE id=?", (artwork_id,)).fetchone()
@@ -440,7 +480,7 @@ def admin_artwork_edit(artwork_id):
 
 
 @app.route("/admin/artworks/<int:artwork_id>/delete", methods=["POST"])
-@login_required
+@admin_required
 def admin_artwork_delete(artwork_id):
     db = get_db()
     db.execute("DELETE FROM artworks WHERE id=?", (artwork_id,))
@@ -449,7 +489,7 @@ def admin_artwork_delete(artwork_id):
 
 
 @app.route("/admin/settings", methods=["GET", "POST"])
-@login_required
+@admin_required
 def admin_settings():
     db = get_db()
     settings = db.execute("SELECT * FROM settings LIMIT 1").fetchone()
@@ -538,4 +578,5 @@ def allowed_file(filename: str) -> bool:
 
 
 if __name__ == "__main__":
+    ensure_upload_folder()
     app.run(debug=True)

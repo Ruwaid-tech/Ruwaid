@@ -10,7 +10,7 @@ sample_artworks = [
     (
         "Portrait Muse",
         "Expressive portrait capturing calm confidence in soft light.",
-        "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=800&q=80",
+        "https://via.placeholder.com/600x400?text=Portrait",
         "Portrait",
         4200.0,
         6,
@@ -18,7 +18,7 @@ sample_artworks = [
     (
         "Emerald Garden",
         "Lush floral watercolor with layered emerald greens.",
-        "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&fit=crop&w=800&q=80",
+        "https://via.placeholder.com/600x400?text=Garden",
         "Floral",
         2600.0,
         8,
@@ -26,7 +26,7 @@ sample_artworks = [
     (
         "Seaside Calm",
         "Gentle seascape in cool teal gradients and soft foam.",
-        "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
+        "https://via.placeholder.com/600x400?text=Seaside",
         "Seascape",
         3100.0,
         5,
@@ -95,14 +95,35 @@ def init_db():
         """
     )
 
+    # Seed admin
     cur.execute(
         "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, ?)",
         (
-            "Ms. Priya Sharma",
+            "Site Administrator",
             "admin",
             "admin@example.com",
-            generate_password_hash("admin123"),
+            generate_password_hash("Admin@123"),
             "ADMIN",
+        ),
+    )
+
+    # Seed clients
+    cur.execute(
+        "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, 'CLIENT')",
+        (
+            "Lena Rivers",
+            "lena",
+            "lena@example.com",
+            generate_password_hash("Password1!"),
+        ),
+    )
+    cur.execute(
+        "INSERT INTO users (full_name, username, email, password_hash, role) VALUES (?, ?, ?, ?, 'CLIENT')",
+        (
+            "Marco Silva",
+            "marco",
+            "marco@example.com",
+            generate_password_hash("Password2!"),
         ),
     )
 
@@ -116,10 +137,10 @@ def init_db():
     cur.execute(
         "INSERT INTO settings (owner_name, phone, alt_phone, about_content) VALUES (?, ?, ?, ?)",
         (
-            "Ms. Priya Sharma",
-            "+49-123456789",
-            "+49-987654321",
-            "Art Hub presents a curated selection of portraits, coastal scenes, and bespoke commissions crafted with care and vibrant detail.",
+            "Art Hub Studio",
+            "+49 555 1234567",
+            "+49 555 9876543",
+            "Welcome to Art Hub, a vibrant online space featuring curated works and bespoke commissions crafted with care.",
         ),
     )
 

@@ -1,26 +1,30 @@
-{% extends 'base.html' %}
-{% block content %}
-<section class="auth">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Hub - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body class="auth-body">
     <div class="auth-card">
-        <h1>Create Admin Account</h1>
-        <form method="post">
+        <h1>Create Account</h1>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+        <form method="POST" action="{{ url_for('register') }}">
             <label>Full Name</label>
-            <input type="text" name="full_name" required>
-            {% if errors.get('full_name') %}<p class="error">{{ errors['full_name'] }}</p>{% endif %}
+            <input type="text" name="full_name" required placeholder="Your full name">
             <label>Username</label>
-            <input type="text" name="username" required>
-            {% if errors.get('username') %}<p class="error">{{ errors['username'] }}</p>{% endif %}
+            <input type="text" name="username" required placeholder="Choose a username">
             <label>Email</label>
-            <input type="email" name="email">
+            <input type="email" name="email" placeholder="you@example.com">
             <label>Password</label>
             <input type="password" name="password" required>
-            {% if errors.get('password') %}<p class="error">{{ errors['password'] }}</p>{% endif %}
             <label>Confirm Password</label>
             <input type="password" name="confirm" required>
-            {% if errors.get('confirm') %}<p class="error">{{ errors['confirm'] }}</p>{% endif %}
-            <button class="btn primary" type="submit">Create Account</button>
-            <p class="muted">Already have access? <a href="{{ url_for('login') }}">Login</a></p>
+            <button type="submit" class="btn primary full">Register</button>
         </form>
+        <p class="muted">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
     </div>
-</section>
-{% endblock %}
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

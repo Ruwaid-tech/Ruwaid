@@ -1,17 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
-<section class="panel order-confirm">
-    <h1>ORDER PLACED</h1>
-    <p>Order ID: {{ order['order_code'] }}</p>
-    <p>Status: {{ order['status'] }}</p>
+<div class="confirm">
+    <h1>Order Confirmed</h1>
+    <p>Order Code: <strong>{{ order.order_code }}</strong></p>
+    <p>Status: <strong>{{ order.status }}</strong></p>
+    <p class="muted">Cash on Delivery - we will call you soon.</p>
     <div class="contact-card">
-        <h3>Contact the Owner</h3>
-        {% if settings %}
-        <p><strong>{{ settings['owner_name'] }}</strong></p>
-        <p>Phone: {{ settings['phone'] }}</p>
-        {% if settings['alt_phone'] %}<p>Alt: {{ settings['alt_phone'] }}</p>{% endif %}
-        {% endif %}
+        <h3>Contact</h3>
+        <p>{{ settings.owner_name }}</p>
+        <p>{{ settings.phone }} {% if settings.alt_phone %}/ {{ settings.alt_phone }}{% endif %}</p>
     </div>
-    <a class="btn primary" href="{{ url_for('gallery') }}">Back to Gallery</a>
-</section>
+    <a class="btn" href="{{ url_for('gallery') }}">Back to Gallery</a>
+</div>
 {% endblock %}
