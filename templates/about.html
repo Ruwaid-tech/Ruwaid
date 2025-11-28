@@ -8,5 +8,11 @@
         <p>{{ settings.owner_name }}</p>
         <p>{{ settings.phone }} {% if settings.alt_phone %}/ {{ settings.alt_phone }}{% endif %}</p>
     </div>
+    {% if session.get('role') == 'ADMIN' %}
+    <div class="admin-edit">
+        <a class="btn primary" href="{{ url_for('admin_settings') }}">Edit About Content</a>
+        <p class="hint">Only admins can update the About text and contact details.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

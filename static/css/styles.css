@@ -47,6 +47,8 @@ a { color: var(--accent); text-decoration: none; }
 .password-field .toggle { padding: 10px 12px; border-radius: 8px; border:1px solid var(--border); background: var(--card); color: var(--text); cursor:pointer; }
 .error { color: #fca5a5; font-size: 0.9rem; }
 .flash p { margin: 0; }
+.admin-edit { margin-top: 1.2rem; padding: 1rem; border: 1px dashed #a29bfe; background: #f7f7ff; border-radius: 8px; }
+.admin-edit .hint { margin-top: 0.5rem; color: #555; font-size: 0.9rem; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 12px; margin: 16px 0; }
 .stat-card { background: var(--card); padding: 16px; border-radius: 12px; border:1px solid var(--border); }
 .inline { display:inline; }
