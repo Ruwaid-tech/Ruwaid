@@ -1,0 +1,284 @@
+/*
+ * Reflective Cycling Routes - Stylesheet
+ * Calm, clean layout for cycling routes and reflections.
+ */
+
+:root {
+    --bg-start: #5c8fa6; /* deeper sea-teal */
+    --bg-mid: #729bb6;   /* soft ocean blue */
+    --bg-end: #9a8cc4;   /* twilight lilac */
+    --card-bg: #f2eee8;  /* warm sand tint */
+    --primary: #1f5c6d;
+    --accent: #cfe8da;
+    --text: #0c1f2e;
+    --muted: #2f4554;
+    --border: #a9bbc8;
+    --shadow: 0 10px 26px rgba(12, 31, 46, 0.18);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(180deg, var(--bg-start) 0%, var(--bg-mid) 55%, var(--bg-end) 100%);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+    color: var(--text);
+    margin: 0 0 0.6em;
+}
+
+p {
+    margin: 0 0 1em;
+    color: var(--muted);
+}
+
+/* Layout helpers */
+.container {
+    width: min(1100px, 90%);
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.section {
+    padding: 4rem 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.section-header p {
+    max-width: 680px;
+    margin: 0.5rem auto 0;
+}
+
+/* Header and navigation */
+.site-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, rgba(92, 143, 166, 0.93), rgba(154, 140, 196, 0.93));
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 20px rgba(12, 31, 46, 0.22);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0.5rem;
+    gap: 1rem;
+}
+
+.subtitle {
+    margin: 0;
+    color: var(--muted);
+}
+
+.main-nav ul {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+}
+
+.main-nav a {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    padding: 0.65rem 1rem;
+    border-radius: 999px;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.main-nav a:hover,
+.main-nav a:focus {
+    background: var(--primary);
+    color: #fdfdfd;
+    box-shadow: 0 8px 16px rgba(45, 108, 124, 0.2);
+}
+
+/* Hero */
+.hero {
+    background: linear-gradient(135deg, rgba(92, 143, 166, 0.96), rgba(114, 155, 182, 0.93), rgba(154, 140, 196, 0.95));
+    padding: 5rem 0 4.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.hero-content {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.hero-text h2 {
+    font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+    color: var(--text);
+}
+
+.hero-text p {
+    max-width: 760px;
+}
+
+.hero-media {
+    display: grid;
+    gap: 0.9rem;
+    align-self: end;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.hero-media img {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    object-fit: cover;
+    min-height: 200px;
+    background: #d7e2ec;
+}
+
+.button {
+    display: inline-block;
+    padding: 0.9rem 1.5rem;
+    background: var(--primary);
+    color: #fdfdfd;
+    text-decoration: none;
+    border-radius: 999px;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.button:hover,
+.button:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px rgba(45, 108, 124, 0.24);
+}
+
+/* Cards */
+.cards-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(15, 36, 51, 0.16);
+    border-color: #c5d6de;
+}
+
+.meta {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.label {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: var(--accent);
+    color: #1f3a33;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 0.8rem;
+}
+
+.soft-bg {
+    background: linear-gradient(120deg, rgba(114, 155, 182, 0.35), rgba(154, 140, 196, 0.32));
+}
+
+/* Route card layout */
+.routes-grid {
+    gap: 1.5rem;
+}
+
+.route-card {
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.route-media img {
+    width: 100%;
+    max-height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    background: #d7e2ec;
+}
+
+.route-body h3 {
+    margin-top: 0.25rem;
+}
+
+/* Footer */
+.site-footer {
+    background: linear-gradient(135deg, rgba(92, 143, 166, 0.95), rgba(154, 140, 196, 0.92));
+    padding: 2.2rem 0;
+    border-top: 1px solid var(--border);
+}
+
+.footer-content {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.footer-content .note {
+    margin: 0.3rem 0 0;
+}
+
+/* Responsive adjustments */
+@media (min-width: 640px) {
+    .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero {
+        padding: 5.25rem 0;
+    }
+
+    .route-card {
+        grid-template-columns: 0.9fr 1.1fr;
+    }
+}
+
+@media (min-width: 900px) {
+    .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .reflections-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hero-content {
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: center;
+    }
+}
