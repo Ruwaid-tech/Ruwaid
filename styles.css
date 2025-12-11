@@ -4,14 +4,14 @@
  */
 
 :root {
-    --bg: #f4f8fb;
+    --bg: #f6f7fb;
     --card-bg: #ffffff;
-    --primary: #2a73c2;
-    --accent: #5bb99e;
-    --text: #243447;
-    --muted: #5f7085;
-    --border: #e0e8ef;
-    --shadow: 0 8px 20px rgba(36, 52, 71, 0.08);
+    --primary: #3f738f;
+    --accent: #f3c9b6;
+    --text: #24333f;
+    --muted: #57667a;
+    --border: #e4e8f0;
+    --shadow: 0 10px 26px rgba(36, 52, 71, 0.08);
 }
 
 * {
@@ -63,9 +63,10 @@ p {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: rgba(244, 248, 251, 0.95);
-    backdrop-filter: blur(6px);
+    background: rgba(246, 247, 251, 0.92);
+    backdrop-filter: blur(10px);
     border-bottom: 1px solid var(--border);
+    box-shadow: 0 6px 18px rgba(36, 52, 71, 0.06);
 }
 
 .header-content {
@@ -102,12 +103,13 @@ p {
 .main-nav a:hover,
 .main-nav a:focus {
     background: var(--primary);
-    color: #fff;
+    color: #fefefe;
+    box-shadow: 0 8px 16px rgba(63, 115, 143, 0.16);
 }
 
 /* Hero */
 .hero {
-    background: linear-gradient(120deg, #e9f2fb, #f3fbf7);
+    background: linear-gradient(140deg, #f9fbff, #f5f1f5);
     padding: 4.5rem 0 4rem;
 }
 
@@ -125,11 +127,26 @@ p {
     max-width: 760px;
 }
 
+.hero-media {
+    display: grid;
+    gap: 0.9rem;
+    align-self: end;
+}
+
+.hero-media img {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    object-fit: cover;
+    min-height: 200px;
+}
+
 .button {
     display: inline-block;
     padding: 0.85rem 1.4rem;
     background: var(--primary);
-    color: #fff;
+    color: #fefefe;
     text-decoration: none;
     border-radius: 999px;
     font-weight: 600;
@@ -174,7 +191,7 @@ p {
     display: inline-block;
     padding: 0.35rem 0.75rem;
     background: var(--accent);
-    color: #0f2d2a;
+    color: #3c2a2a;
     border-radius: 999px;
     font-size: 0.85rem;
     font-weight: 700;
@@ -183,12 +200,12 @@ p {
 }
 
 .soft-bg {
-    background: #ecf2f8;
+    background: #f2f5fa;
 }
 
 /* Footer */
 .site-footer {
-    background: #dfe7ef;
+    background: #e7edf5;
     padding: 2rem 0;
     border-top: 1px solid var(--border);
 }
@@ -224,6 +241,7 @@ p {
     }
 
     .hero-content {
-        grid-template-columns: 1.1fr;
+        grid-template-columns: 1.05fr 0.95fr;
+        align-items: center;
     }
 }
