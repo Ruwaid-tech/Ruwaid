@@ -1,0 +1,12 @@
+body { font-family: Arial, sans-serif; margin: 0; background: #f4f6f8; }
+header { background: #1f3a5f; color: white; padding: 1rem; }
+nav a { color: white; margin-right: 1rem; }
+main { max-width: 1000px; margin: 1rem auto; background: white; padding: 1rem; border-radius: 8px; }
+.flash { padding: 0.6rem; border-radius: 4px; }
+.flash.success { background: #daf5dc; }
+.flash.danger { background: #ffd8d8; }
+.flash.warning { background: #fff3cd; }
+.flash.info { background: #dceeff; }
+table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+form { margin-bottom: 1rem; }

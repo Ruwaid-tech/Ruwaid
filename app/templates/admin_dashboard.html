@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<p>Pending approvals: {{ pending_count }}</p>
+<p>Recent attempts tracked: {{ recent_attempts }}</p>
+<ul>
+  <li><a href="{{ url_for('admin.manage_users') }}">Manage Users</a></li>
+  <li><a href="{{ url_for('admin.windows') }}">Set Access Windows</a></li>
+  <li><a href="{{ url_for('admin.logs') }}">View All Logs</a></li>
+</ul>
+{% endblock %}

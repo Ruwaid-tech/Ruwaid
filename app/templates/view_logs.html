@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>All Access Logs</h2>
+<form method="get">
+  <label>User</label>
+  <select name="user_id">
+    <option value="">All</option>
+    {% for user in users %}
+      <option value="{{ user.user_id }}">{{ user.email }}</option>
+    {% endfor %}
+  </select>
+  <label>Result</label>
+  <select name="result">
+    <option value="">All</option>
+    <option value="GRANT">GRANT</option>
+    <option value="DENY">DENY</option>
+  </select>
+  <label>From (ISO datetime)</label>
+  <input name="from" placeholder="2026-01-01T00:00:00">
+  <button type="submit">Filter</button>
+</form>
+<table>
+<tr><th>ID</th><th>User ID</th><th>Timestamp</th><th>Result</th><th>Reason</th><th>IP</th></tr>
+{% for log in logs %}
+<tr><td>{{ log.log_id }}</td><td>{{ log.user_id }}</td><td>{{ log.timestamp }}</td><td>{{ log.result.value }}</td><td>{{ log.reason }}</td><td>{{ log.ip_address }}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}
