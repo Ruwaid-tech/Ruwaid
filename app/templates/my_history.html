@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Access History</h2>
+  <table>
+    <thead><tr><th>Timestamp</th><th>Result</th><th>Reason</th><th>IP</th></tr></thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.timestamp }}</td>
+        <td>{{ log.result.value if log.result else log.result }}</td>
+        <td>{{ log.reason }}</td>
+        <td>{{ log.ip_address or '-' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4">No logs found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

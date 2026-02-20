@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>User Dashboard</h2>
+  <p><strong>Status:</strong> {{ current_user.status.value }}</p>
+  <p><strong>Email Confirmed:</strong> {{ 'Yes' if current_user.email_confirmed else 'No' }}</p>
+  <p><strong>Failed PIN Attempts:</strong> {{ current_user.failed_pin_attempts }}{% if current_user.last_failed_at %} (Last: {{ current_user.last_failed_at }}){% endif %}</p>
+  {% if window %}
+    <p><strong>Access Window:</strong> {{ window.start_time }} → {{ window.end_time }}</p>
+  {% else %}
+    <p><strong>Access Window:</strong> No restrictions configured.</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  <h3>Attempt Storage Access</h3>
+  <form method="post">
+    {{ pin_form.hidden_tag() }}
+    <label>{{ pin_form.entered_code.label }} {{ pin_form.entered_code(placeholder='Enter your PIN') }}</label>
+    {{ pin_form.submit(class_='btn') }}
+  </form>
+  {% if result_msg %}
+    <p class="result">{{ result_msg }}</p>
+  {% endif %}
+  <a class="btn secondary" href="{{ url_for('my_history') }}">My History</a>
+</section>
+{% endblock %}

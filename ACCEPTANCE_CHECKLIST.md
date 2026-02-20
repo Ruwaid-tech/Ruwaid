@@ -1,25 +1,41 @@
 # Acceptance Checklist
 
-1. **Email-confirmed registration**: Implemented in `/register` + `/confirm/<token>`. Test: `tests/test_auth_and_admin.py::test_email_confirm_toggles_state`.
-2. **Inactive until admin approval**: `User.status` defaults to `INACTIVE`; approval route updates to `ACTIVE`.
-3. **Unique PIN hashed only**: Admin approval generates random 6-digit PIN and stores only hash (`pin_hash`).
-4. **Server-side PIN verification**: `process_access_attempt` validates PIN hash server-side.
-5. **All attempts logged**: `process_access_attempt` writes `AccessLog` on every branch.
-6. **Admin view all logs**: `/admin/logs` page lists all logs with filters.
-7. **User view own logs only**: `/my-history` filtered by current user; cross-user route forbidden.
-8. **HTTPS note**: README includes production HTTPS requirement.
-9. **Remote activate/deactivate**: Admin actions in `/admin/users`.
-10. **Temporary admin role**: `role_expires_at` + `has_admin_access` enforcement.
-11. **Time-restricted windows**: `AccessWindow` table and `/admin/windows` assignment UI.
-12. **Outside-window deny+log**: `process_access_attempt` returns deny/log when outside existing windows.
-13. **Failed attempts recorded**: `failed_pin_attempts`, `last_failed_at`, and per-attempt deny logs visible on admin/users + logs pages.
-14. **SQLi/auth safety**: SQLAlchemy ORM + validators + safe error handlers.
-15. **Modern browser support**: Standard server-rendered HTML/CSS tested in Flask app (Chrome/Firefox/Edge compatible).
+1. **Valid registration + email confirmation before activation**  
+   - Implemented in `/register` and `/confirm/<token>` with email validation + token confirmation.
+2. **New users inactive until admin approval**  
+   - `User.status` defaults to `INACTIVE`; admin approval required.
+3. **Unique PIN assigned and stored hashed only**  
+   - Admin approval generates unique PIN (`generate_unique_pin`) and stores only `pin_hash`.
+4. **PIN verification server-side only**  
+   - `process_access_attempt(user_id, entered_code, current_time)` performs verification on server.
+5. **All access attempts logged with user/timestamp/result**  
+   - Every branch in `process_access_attempt` writes an `AccessLog` row.
+6. **Admin sees all logs in UI**  
+   - `/admin/logs` shows full log list with filters.
+7. **Users only see their own history**  
+   - `/my-history` only queries `current_user.user_id`; cross-user checks return 403.
+8. **HTTPS deployment requirement documented**  
+   - Documented in `README.md` under HTTPS requirement.
+9. **Admin can activate/deactivate remotely**  
+   - `/admin/users/<id>/approve` and `/admin/users/<id>/deactivate`.
+10. **Temporary admin role expiry**  
+    - `role_expires_at` + `has_admin_access` logic.
+11. **Time-restricted access windows**  
+    - `AccessWindow` model + `/admin/windows` assignment UI.
+12. **Outside window => deny + log**  
+    - Implemented in `process_access_attempt` branch with reason `OUTSIDE_ACCESS_WINDOW`.
+13. **Multiple failed PIN attempts recorded + visible to admin**  
+    - `failed_pin_attempts`, `last_failed_at`, and per-attempt deny logs.
+14. **SQL injection and unauthorized attempts handled safely**  
+    - SQLAlchemy ORM, Flask-WTF validation, RBAC checks, safe error pages.
+15. **Works on modern desktop browsers**  
+    - Standard responsive HTML/CSS/JS with no legacy browser dependencies.
 
-## Manual smoke test
-1. Register a user.
-2. Confirm email via dev link.
-3. Login as admin (`flask --app app seed-admin` if needed).
-4. Approve user and note generated PIN.
-5. Set access window and test PIN in/outside window.
-6. Validate logs in `/admin/logs` and user-only history in `/my-history`.
+## Manual test flow
+1. Register a new user.
+2. Confirm user email via generated link.
+3. Seed/login admin.
+4. Approve user and note one-time shown PIN.
+5. Set access window.
+6. Submit PIN inside/outside window from user dashboard.
+7. Verify user history and admin all-log filtering.
