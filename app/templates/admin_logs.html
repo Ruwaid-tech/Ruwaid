@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>All Access Logs</h2>
+  <form method="post" class="filters">
+    {{ form.hidden_tag() }}
+    <label>{{ form.user_id.label }} {{ form.user_id(placeholder='e.g. 3') }}</label>
+    <label>{{ form.result.label }} {{ form.result() }}</label>
+    <label>{{ form.start_time.label }} {{ form.start_time() }}</label>
+    <label>{{ form.end_time.label }} {{ form.end_time() }}</label>
+    {{ form.submit(class_='btn') }}
+  </form>
+  <table id="logs-table">
+    <thead><tr><th>Timestamp</th><th>User ID</th><th>Result</th><th>Reason</th><th>IP</th></tr></thead>
+    <tbody>
+      {% for log in logs %}
+      <tr>
+        <td>{{ log.timestamp }}</td><td>{{ log.user_id or 'NULL' }}</td><td>{{ log.result.value if log.result else log.result }}</td><td>{{ log.reason }}</td><td>{{ log.ip_address or '-' }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="5">No logs found.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

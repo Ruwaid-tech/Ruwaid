@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h2>Register</h2>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <label>{{ form.email.label }} {{ form.email() }}</label>
+    <label>{{ form.password.label }} {{ form.password() }}</label>
+    <label>{{ form.confirm_password.label }} {{ form.confirm_password() }}</label>
+    {{ form.submit(class_='btn') }}
+  </form>
+  <p class="muted">New accounts are inactive until email confirmation and admin approval.</p>
+</section>
+{% endblock %}

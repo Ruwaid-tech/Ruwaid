@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime
 
 from app import db
 from app.models import User, UserStatus
@@ -9,7 +9,7 @@ def login(client, email, password):
     return client.post("/login", data={"email": email, "password": password}, follow_redirects=True)
 
 
-def test_registration_creates_inactive_user_pending_approval(client, app):
+def test_registration_creates_inactive_user_pending_approval_and_sends_confirmation_email(client, app, outbox):
     client.post(
         "/register",
         data={"email": "new@example.com", "password": "password123", "confirm_password": "password123"},
@@ -21,6 +21,12 @@ def test_registration_creates_inactive_user_pending_approval(client, app):
         assert user is not None
         assert user.status == UserStatus.INACTIVE
         assert user.email_confirmed is False
+
+    messages = outbox()
+    assert len(messages) == 1
+    assert messages[0]["to"] == "new@example.com"
+    assert "Confirm your Storage Access Manager account" == messages[0]["subject"]
+    assert "/confirm/" in messages[0]["text_body"]
 
 
 def test_email_confirm_toggles_state(client, app):
@@ -37,7 +43,7 @@ def test_email_confirm_toggles_state(client, app):
         assert user.email_confirmed is True
 
 
-def test_admin_approval_activates_user_and_assigns_pin(client, app, admin_user):
+def test_admin_approval_activates_user_assigns_pin_and_emails_it(client, app, admin_user, outbox):
     with app.app_context():
         user = User(
             email="approve@example.com",
@@ -53,6 +59,13 @@ def test_admin_approval_activates_user_and_assigns_pin(client, app, admin_user):
     client.post(f"/admin/users/{user_id}/approve", follow_redirects=True)
 
     with app.app_context():
-        user = User.query.get(user_id)
+        user = db.session.get(User, user_id)
         assert user.status == UserStatus.ACTIVE
         assert user.pin_hash is not None
+
+    messages = outbox()
+    assert len(messages) == 1
+    assert messages[0]["to"] == "approve@example.com"
+    assert messages[0]["subject"] == "Your Storage Access Manager PIN code"
+    assert "Your PIN code is:" in messages[0]["text_body"]
+    assert "approve@example.com" not in messages[0]["text_body"]

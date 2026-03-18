@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="grid">
+  <article class="card"><h3>Pending approvals</h3><p class="big">{{ pending_count }}</p></article>
+  <article class="card"><h3>Recent attempts today</h3><p class="big">{{ recent_attempts }}</p></article>
+</section>
+<section class="card">
+  <a class="btn" href="{{ url_for('manage_users') }}">Manage Users</a>
+  <a class="btn" href="{{ url_for('set_access_windows') }}">Set Access Windows</a>
+  <a class="btn" href="{{ url_for('view_logs') }}">View All Logs</a>
+</section>
+{% endblock %}

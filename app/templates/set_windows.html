@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Set Access Windows</h2>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <label>{{ form.user_id.label }} {{ form.user_id() }}</label>
+    <label>{{ form.start_time.label }} {{ form.start_time() }}</label>
+    <label>{{ form.end_time.label }} {{ form.end_time() }}</label>
+    {{ form.submit(class_='btn') }}
+  </form>
+</section>
+<section class="card">
+  <h3>Configured Windows</h3>
+  <table>
+    <thead><tr><th>User</th><th>Start</th><th>End</th></tr></thead>
+    <tbody>
+      {% for window in windows %}
+      <tr><td>{{ window.user.email }}</td><td>{{ window.start_time }}</td><td>{{ window.end_time }}</td></tr>
+      {% else %}
+      <tr><td colspan="3">No access windows configured.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

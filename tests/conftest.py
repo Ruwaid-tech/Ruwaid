@@ -1,24 +1,27 @@
+import json
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from datetime import datetime, timedelta, timezone
 
 import pytest
 from werkzeug.security import generate_password_hash
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app import create_app, db
 from app.models import User, UserRole, UserStatus
 
 
 @pytest.fixture
-def app():
+def app(tmp_path):
+    outbox_path = tmp_path / "dev_mailbox.json"
     app = create_app(
         {
             "TESTING": True,
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             "WTF_CSRF_ENABLED": False,
             "SECRET_KEY": "test-secret",
+            "DEV_EMAIL_OUTBOX": str(outbox_path),
         }
     )
     with app.app_context():
@@ -31,6 +34,17 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture
+def outbox(app):
+    def _read_messages():
+        path = Path(app.config["DEV_EMAIL_OUTBOX"])
+        if not path.exists():
+            return []
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    return _read_messages
 
 
 @pytest.fixture

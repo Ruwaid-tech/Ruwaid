@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Manage Users</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Email</th><th>Status</th><th>Role</th><th>Role Expires</th><th>Failed PIN</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td>{{ user.user_id }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.status.value }}</td>
+        <td>{{ user.role.value }}</td>
+        <td>{{ user.role_expires_at or '-' }}</td>
+        <td>{{ user.failed_pin_attempts }}{% if user.last_failed_at %} / {{ user.last_failed_at }}{% endif %}</td>
+        <td>
+          <form method="post" action="{{ url_for('approve_user', user_id=user.user_id) }}" class="inline">{{ temp_admin_form.csrf_token }}<button class="btn small">Approve</button></form>
+          <form method="post" action="{{ url_for('deactivate_user', user_id=user.user_id) }}" class="inline">{{ temp_admin_form.csrf_token }}<button class="btn small secondary">Deactivate</button></form>
+          <form method="post" action="{{ url_for('clear_temp_admin', user_id=user.user_id) }}" class="inline">{{ temp_admin_form.csrf_token }}<button class="btn small secondary">Clear Admin</button></form>
+          <form method="post" action="{{ url_for('set_temp_admin', user_id=user.user_id) }}" class="inline stack">
+            {{ temp_admin_form.csrf_token }}
+            <input type="datetime-local" name="role_expires_at" required>
+            <button class="btn small">Temp Admin</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

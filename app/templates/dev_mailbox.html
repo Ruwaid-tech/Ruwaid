@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Dev Mailbox</h2>
+  <p class="muted">Local development emails are written to the dev outbox so confirmation links and approval PINs can be reviewed safely without a real SMTP provider.</p>
+  <table>
+    <thead><tr><th>Sent At</th><th>To</th><th>Subject</th><th>Message</th></tr></thead>
+    <tbody>
+      {% for message in messages %}
+      <tr>
+        <td>{{ message.sent_at }}</td>
+        <td>{{ message.to }}</td>
+        <td>{{ message.subject }}</td>
+        <td><pre class="mail-body">{{ message.text_body }}</pre></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4">No emails have been delivered yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
