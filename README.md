@@ -33,12 +33,36 @@ Optional environment variables:
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 
-## Email confirmation in development
-When a user registers, a confirmation link is generated and:
-1. Logged to the Flask console (`Email confirmation link for ...`).
-2. Shown in a flash message (`Dev confirmation link: ...`).
+## Email delivery
+The app now includes actual email-delivery handling instead of only showing links in flash messages.
 
-Clicking `/confirm/<token>` confirms email. The account still remains `INACTIVE` until admin approval.
+### Development mode
+By default, emails are written to `instance/dev_mailbox.json` and also logged to the console. You can inspect them in either of these ways:
+1. Open the **Dev Mailbox** page in the web UI.
+2. Read the JSON outbox file on disk.
+
+This includes:
+- registration confirmation emails containing the `/confirm/<token>` link;
+- approval emails containing the one-time generated PIN code.
+
+### SMTP mode
+You can switch to real SMTP delivery by overriding config values such as:
+- `MAIL_DELIVERY=smtp`
+- `MAIL_SERVER`
+- `MAIL_PORT`
+- `MAIL_USE_TLS`
+- `MAIL_USERNAME`
+- `MAIL_PASSWORD`
+- `MAIL_DEFAULT_SENDER`
+
+If SMTP delivery fails, the app returns a safe message and logs the delivery failure server-side.
+
+## Approval and PIN flow
+1. A user registers.
+2. The system sends a confirmation email.
+3. The user confirms their email address.
+4. The account remains `INACTIVE` until an admin approves it.
+5. On approval, the system generates a unique PIN, stores only the PIN hash, and emails the plaintext PIN to the user.
 
 ## Security controls
 - Password and PIN are hashed with Werkzeug.

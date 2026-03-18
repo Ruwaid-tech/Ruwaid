@@ -16,10 +16,12 @@
       {% if current_user.has_admin_access() %}
       <a href="{{ url_for('admin_dashboard') }}">Admin</a>
       {% endif %}
+      {% if config.get('MAIL_DELIVERY') == 'console_and_file' %}<a href="{{ url_for('dev_mailbox') }}">Dev Mailbox</a>{% endif %}
       <a href="{{ url_for('logout') }}">Logout</a>
     {% else %}
       <a href="{{ url_for('login') }}">Login</a>
       <a href="{{ url_for('register') }}">Register</a>
+      {% if config.get('MAIL_DELIVERY') == 'console_and_file' %}<a href="{{ url_for('dev_mailbox') }}">Dev Mailbox</a>{% endif %}
     {% endif %}
   </nav>
 </header>

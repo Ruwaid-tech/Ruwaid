@@ -1,13 +1,15 @@
 from datetime import datetime
 from functools import wraps
 
-from flask import abort, flash, redirect, render_template, request, url_for
+from flask import abort, current_app, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from . import db
 from .forms import AccessWindowForm, LogFilterForm, LoginForm, PinAttemptForm, RegisterForm, TempAdminForm
+from .email_service import EmailService, EmailDeliveryError
 from .models import AccessLog, AccessResult, AccessWindow, User, UserRole, UserStatus
+from .notifications import send_confirmation_email, send_pin_assignment_email
 from .security import confirm_token, generate_confirmation_token, generate_unique_pin, hash_pin, process_access_attempt
 
 
@@ -45,10 +47,15 @@ def register_routes(app):
                 db.session.add(user)
                 db.session.commit()
                 token = generate_confirmation_token(app, user.email)
-                confirm_link = url_for("confirm_email", token=token, _external=True)
-                app.logger.info("Email confirmation link for %s: %s", user.email, confirm_link)
-                flash("Registration successful. Check your email to confirm your account.", "success")
-                flash(f"Dev confirmation link: {confirm_link}", "info")
+                try:
+                    send_confirmation_email(user.email, token)
+                except EmailDeliveryError:
+                    current_app.logger.exception("Failed to deliver confirmation email for %s", user.email)
+                    flash("Registration saved, but we could not deliver the confirmation email right now.", "error")
+                else:
+                    flash("Registration successful. A confirmation email has been sent.", "success")
+                    if current_app.config.get("MAIL_DELIVERY") == "console_and_file":
+                        flash("Development email saved to the Dev Mailbox page.", "info")
                 return redirect(url_for("login"))
         return render_template("register.html", form=form)
 
@@ -127,6 +134,13 @@ def register_routes(app):
         logs = AccessLog.query.filter_by(user_id=user_id).order_by(AccessLog.timestamp.desc()).all()
         return render_template("my_history.html", logs=logs)
 
+    @app.route("/dev/mailbox")
+    def dev_mailbox():
+        if current_app.config.get("MAIL_DELIVERY") != "console_and_file":
+            abort(404)
+        messages = EmailService(current_app).list_messages()
+        return render_template("dev_mailbox.html", messages=messages)
+
     @app.route("/admin/dashboard")
     @login_required
     @admin_required
@@ -158,7 +172,16 @@ def register_routes(app):
         user.failed_pin_attempts = 0
         user.last_failed_at = None
         db.session.commit()
-        flash(f"User {user.email} approved. Temporary PIN shown once: {pin}", "success")
+
+        try:
+            send_pin_assignment_email(user.email, pin)
+        except EmailDeliveryError:
+            current_app.logger.exception("Failed to deliver approval PIN email for %s", user.email)
+            flash(f"User {user.email} approved, but the PIN email could not be delivered.", "error")
+        else:
+            flash(f"User {user.email} approved and the PIN was sent by email.", "success")
+            if current_app.config.get("MAIL_DELIVERY") == "console_and_file":
+                flash("Development PIN email saved to the Dev Mailbox page.", "info")
         return redirect(url_for("manage_users"))
 
     @app.route("/admin/users/<int:user_id>/deactivate", methods=["POST"])

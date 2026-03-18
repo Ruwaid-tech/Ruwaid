@@ -24,3 +24,5 @@ th, td { border-bottom: 1px solid #e3e7ef; padding: .55rem; text-align: left; }
 .muted { color: #667; }
 .result { font-weight: bold; margin-top: .8rem; }
 .filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .5rem; align-items: end; }
+
+pre.mail-body { white-space: pre-wrap; margin: 0; font-family: monospace; background: #f7f8fb; padding: .75rem; border-radius: 6px; }
